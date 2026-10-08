@@ -1,0 +1,70 @@
+Tab 1 (Full Data) — Results:
+
+
+1. Earth Itself: 
+Final Habitability Score
+1.000
+Exceeds Earth baseline
+✅
+Habitable Zone Candidate (passes strict criteria)
+
+
+2. Kepler-438 b 
+
+
+With values you provided: pl_rade = 1.12, pl_insol = 1.15 (approx), star class = K
+result: 
+Final Habitability Score
+1.059
+Exceeds Earth baseline
+⚠️
+Not a strict candidate — insolation flux outside habitable zone range (0.35–1.1). Score above reflects overall Earth-similarity regardless.
+Superhabitability bonus applied: +0.10 (K host / favorable size)
+
+
+with values from notebook of Kepler-438 b: pl_rade = 1.12, pl_insol = 1.40 (approx), star class = K
+Final Habitability Score #matches with the notebook score
+1.023
+Exceeds Earth baseline
+⚠️
+Not a strict candidate — insolation flux outside habitable zone range (0.35–1.1). Score above reflects overall Earth-similarity regardless.
+Superhabitability bonus applied: +0.10 (K host / favorable size) 
+
+
+3. A hot Jupiter, for contrast
+Final Habitability Score
+0.085
+Earth = 1.0
+⚠️
+Not a strict candidate — insolation flux outside habitable zone range (0.35–1.1), radius suggests a gas giant, not rocky. Score above reflects overall Earth-similarity regardless.
+
+
+
+
+Tab 2 (Indirect Prediction)  — Results:
+
+
+1. TOI-7347.01
+Predicted Habitability Score
+0.882
+Estimate, not exact
+This is a model estimate based on indirect properties only — actual score may differ once precise radius/insolation data becomes available.
+
+
+2. TOI-6714.01
+Predicted Habitability Score
+0.814
+Estimate, not exact
+This is a model estimate based on indirect properties only — actual score may differ once precise radius/insolation data becomes available.
+
+
+3. Something clearly non-habitable 
+Predicted Habitability Score
+0.025
+Estimate, not exact
+This is a model estimate based on indirect properties only — actual score may differ once precise radius/insolation data becomes available.
+
+
+
+
+
