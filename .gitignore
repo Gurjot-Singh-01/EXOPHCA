@@ -1,9 +1,39 @@
+# Python cache
 __pycache__/
 *.py[cod]
-.ipynb_checkpoints/
-.venv/
+*.pyc
+*.pyo
+.Python
+
+# Virtual environments
 venv/
+env/
+.venv/
 .env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files (large and private)
+data/raw/PSCD.csv
+data/raw/TOI_2026.csv
+data/*.csv
+
+# Models and outputs
 models/*.pkl
+*.pkl
 *.joblib
+
+# Build
+build/
+dist/
+*.egg-info/
