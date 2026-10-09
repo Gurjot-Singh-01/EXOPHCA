@@ -3,14 +3,14 @@ import joblib
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import streamlit.components.v1 as components
-import colorsys
 from pathlib import Path
 
 # Resolve paths relative to this file's location
 SCRIPT_DIR = Path(__file__).resolve().parent.parent  # Go up one level from app/ to repo root
 MODEL_DIR = SCRIPT_DIR / "models"
 DATA_DIR = SCRIPT_DIR / "data"
+
+st.set_page_config(page_title="EXOPHCA", page_icon="🪐", layout="centered")
 
 
 def resolve_project_file(filename, search_dirs=None):
@@ -67,11 +67,10 @@ def generate_system_html(pl_rade, pl_insol, star_class):
     planet_px = int(np.clip(30 + pl_rade * 12, 30, 100))
 
     html = f"""
-    <html>
-    <head>
     <style>
-        body {{ margin:0; display:flex; justify-content:center; align-items:center;
-                gap: 60px; height:220px; background:transparent; }}
+        .system-scene {{ margin:0; display:flex; justify-content:center; align-items:center;
+                         gap: 60px; min-height:220px; background:transparent; }}
+        .system-object {{ text-align:center; }}
         .star {{
             width: {star_px}px; height: {star_px}px; border-radius: 50%;
             background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8), {star_color} 60%);
@@ -84,18 +83,16 @@ def generate_system_html(pl_rade, pl_insol, star_class):
         }}
         .label {{ font-size: 12px; text-align:center; color: #ccc; margin-top: 8px; }}
     </style>
-    </head>
-    <body>
-        <div style="text-align:center;">
+    <div class="system-scene">
+        <div class="system-object">
             <div class="star"></div>
             <div class="label">Host Star ({star_class})</div>
         </div>
-        <div style="text-align:center;">
+        <div class="system-object">
             <div class="planet"></div>
             <div class="label">Planet ({pl_rade:.2f} R⊕)</div>
         </div>
-    </body>
-    </html>
+    </div>
     """
     return html
 
@@ -110,11 +107,9 @@ def generate_size_comparison_html(pl_rade, pl_insol):
     planet_px = min(planet_px, 200)  # hard cap so it never overflows the box
 
     html = f"""
-    <html>
-    <head>
     <style>
-        body {{ margin:0; display:flex; justify-content:center; align-items:flex-end;
-                gap: 50px; height:240px; background:transparent; }}
+        .size-comparison {{ margin:0; display:flex; justify-content:center; align-items:flex-end;
+                            gap: 50px; min-height:240px; background:transparent; }}
         .earth {{
             width: {earth_px}px; height: {earth_px}px; border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 40%), {earth_color};
@@ -128,8 +123,7 @@ def generate_size_comparison_html(pl_rade, pl_insol):
         .label {{ font-size: 12px; text-align:center; color: #ccc; margin-top: 8px; }}
         .col {{ display:flex; flex-direction:column; align-items:center; justify-content:flex-end; }}
     </style>
-    </head>
-    <body>
+    <div class="size-comparison">
         <div class="col">
             <div class="earth"></div>
             <div class="label">Earth (1.0 R⊕)</div>
@@ -138,22 +132,31 @@ def generate_size_comparison_html(pl_rade, pl_insol):
             <div class="planet"></div>
             <div class="label">This planet ({pl_rade:.2f} R⊕)</div>
         </div>
-    </body>
-    </html>
+    </div>
     """
     return html
 
-# Load trained models and data
-rf_compat = joblib.load(resolve_project_file('rf_compat_model.pkl', [MODEL_DIR]))
-planets_df = pd.read_csv(resolve_project_file('planets_for_app.csv', [DATA_DIR]))
-toi_df = pd.read_csv(resolve_project_file('toi_for_app.csv', [DATA_DIR]))
+
+@st.cache_resource
+def load_compatibility_model():
+    return joblib.load(resolve_project_file("rf_compat_model.pkl", [MODEL_DIR]))
 
 
-st.set_page_config(page_title="EXOPHCA", page_icon="🪐", layout="centered")
+@st.cache_data
+def load_csv(filename):
+    return pd.read_csv(resolve_project_file(filename, [DATA_DIR]))
+
+
+rf_compat = load_compatibility_model()
+planets_df = load_csv("planets_for_app.csv")
+toi_df = load_csv("toi_for_app.csv")
 
 st.title("🪐 EXOPHCA")
 st.subheader("Exoplanet Habitability Compatibility Analysis")
-st.write("Estimate how Earth-similar a planet is, and how likely it may be to support life in the cosmos — comparing its data against Earth as the baseline.")
+st.write(
+    "Explore two experimental measures of Earth similarity. These scores are not "
+    "probabilities of life or confirmation that a planet is habitable."
+)
 
 # ---------- Preset planet data ----------
 PRESETS = {
@@ -216,8 +219,18 @@ with tab1:
         in_hz = 0.35 <= pl_insol <= 1.1
         is_rocky = pl_rade < 1.75
 
-        st.metric("Final Habitability Score", f"{final_score:.3f}",
-                   delta="Earth = 1.0" if final_score < 1 else "Exceeds Earth baseline")
+        if final_score > 1:
+            score_delta = f"+{final_score - 1:.3f} vs Earth"
+        elif final_score < 1:
+            score_delta = f"{final_score - 1:.3f} vs Earth"
+        else:
+            score_delta = None
+
+        st.metric(
+            "Formula-based compatibility score",
+            f"{final_score:.3f}",
+            delta=score_delta,
+        )
 
         if in_hz and is_rocky:
             st.success("✅ Habitable Zone Candidate (passes strict criteria)")
@@ -235,12 +248,12 @@ with tab1:
         # --- Size comparison visual ---
         st.markdown("#### Size Comparison")
         size_html = generate_size_comparison_html(pl_rade, pl_insol)
-        components.html(size_html, height=240)
+        st.html(size_html)
 
         st.markdown("#### System Preview")
         st.caption("Star color reflects representative spectral-class temperature; planet color reflects insolation flux (blue = cold, red = hot). Sizes are roughly proportional.")
         system_html = generate_system_html(pl_rade, pl_insol, star_class)
-        components.html(system_html, height=220)
+        st.html(system_html)
         # --- Scatter plot vs known planets ---
         st.markdown("#### Where This Planet Lands")
         fig2, ax2 = plt.subplots(figsize=(7, 5))
@@ -253,6 +266,7 @@ with tab1:
         ax2.set_ylabel('Planet Radius (Earth radii)')
         ax2.legend()
         st.pyplot(fig2)
+        plt.close(fig2)
 
 # ---------- TAB 2: Indirect ML prediction ----------
 with tab2:
@@ -269,11 +283,33 @@ with tab2:
     sy_dist = st.number_input("Distance from Earth (parsecs)", min_value=0.01, 
                                 value=toi_preset["sy_dist"] if toi_preset else 100.0, step=1.0)
     if st.button("Predict Habitability Score", key="indirect"):
-        X_input = np.array([[pl_orbper, st_teff, sy_dist]])
+        feature_values = {
+            "pl_orbper": pl_orbper,
+            "st_teff": st_teff,
+            "sy_dist": sy_dist,
+        }
+        feature_names = rf_compat.feature_names_in_
+        X_input = pd.DataFrame(
+            [[feature_values[name] for name in feature_names]],
+            columns=feature_names,
+        )
         predicted_score = rf_compat.predict(X_input)[0]
 
-        st.metric("Predicted Habitability Score", f"{predicted_score:.3f}", delta="Estimate, not exact")
-        st.caption("This is a model estimate based on indirect properties only — actual score may differ once precise radius/insolation data becomes available.")
+        st.metric(
+            "Model-estimated compatibility score",
+            f"{predicted_score:.3f}",
+            delta="Estimate, not exact",
+        )
+        candidate_scores = toi_df["predicted_score"]
+        candidates_scoring_at_least_as_high = int(
+            (candidate_scores >= predicted_score).sum()
+        )
+        st.caption(
+            "This is a model estimate, not a probability of life or habitability. "
+            "Tab 1 and Tab 2 use different methods and their scores are not directly "
+            f"comparable. {candidates_scoring_at_least_as_high:,} of "
+            f"{len(toi_df):,} bundled TESS candidates score this highly or higher."
+        )
         # --- Scatter plot vs real TOI candidates ---
         st.markdown("#### Where This Candidate Lands")
         fig3, ax3 = plt.subplots(figsize=(7, 5))
@@ -288,26 +324,28 @@ with tab2:
         cbar = plt.colorbar(ax3.collections[0], ax=ax3)
         cbar.set_label('Predicted Habitability Score')
         st.pyplot(fig3)
+        plt.close(fig3)
 
 # ---------- TAB 3: About ----------
 with tab3:
     st.markdown("""
     ### About EXOPHCA
 
-    This tool estimates exoplanet habitability using two complementary approaches, built on
+    This tool compares exoplanets with Earth using two complementary approaches, built on
     NASA Exoplanet Archive data (PSCompPars + TESS Objects of Interest).
 
     **1. Exact Score (Earth Similarity Index)**
     When a planet's radius and insolation flux are precisely known, a formula-based score
     (adapted from Schulze-Makuch et al., 2011) compares it directly to Earth (Earth = 1.0).
+    It is a similarity score, not a measure of the probability that life exists.
     A small bonus is added for planets orbiting K-type stars or slightly larger than Earth,
     reflecting research on "superhabitable" worlds (Heller & Armstrong, 2014).
 
     **2. Indirect Prediction (Machine Learning)**
     For genuinely unconfirmed candidates — like real TESS Objects of Interest — radius and
-    insolation aren't yet measured. This model predicts a habitability score using only
+    insolation aren't yet measured. This model estimates a compatibility score using only
     orbital period, stellar temperature, and distance: properties available even before
-    a planet is fully confirmed.
+    a planet is fully confirmed. It does not predict whether life exists.
 
     **A note on methodology — avoiding data leakage:**
     Early versions of this model used radius and insolation as *both* the training features

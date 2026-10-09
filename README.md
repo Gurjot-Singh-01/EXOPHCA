@@ -1,103 +1,112 @@
-# EXOPHCA 🪐
+# EXOPHCA
 
-**EXOPHCA** (**Exo**planet **P**lanetary **H**abitability **C**ompatibility **A**nalysis) is a machine learning project designed to predict the likelihood of habitability and the potential for life on distant exoplanets. It combines astrophysical data, preprocessing, feature engineering, and a Random Forest-based classification model to assess planetary compatibility with Earth-like conditions.
+**Exoplanet Habitability Compatibility Analysis** is an educational project for
+exploring how known exoplanets and TESS Objects of Interest compare with Earth.
+It combines a formula-based Earth Similarity Index (ESI) score with a
+Random Forest regression estimate for candidates with limited measurements.
 
-## 📌 Project Overview
+> **Important:** Neither score is a probability that a planet is habitable or
+> hosts life. The model is an exploratory estimate trained on confirmed-planet
+> data and is affected by detection and selection biases.
 
-With thousands of exoplanets discovered across the galaxy, evaluating their habitability requires processing complex astrophysical and planetary parameters. EXOPHCA uses a **Random Forest Classifier** to predict whether an exoplanet may be suitable for life-based conditions.
+## What it does
 
-The project includes a complete ML workflow covering data preprocessing, feature selection, model training, and performance evaluation.
+- **Measured properties:** calculates a formula-based score from planet radius
+  and stellar insolation, adds the project's documented superhabitability
+  adjustments, and reports its simplified rocky-planet and insolation-range
+  checks.
+- **Limited candidate properties:** estimates a compatibility score from
+  orbital period, stellar effective temperature, and distance using a
+  `RandomForestRegressor`.
+- **Exploration:** compares user inputs with the bundled exoplanet and TESS
+  candidate datasets and includes an explanatory glossary.
 
----
+The two tabs use different methods and their scores are **not directly
+comparable**. The tab-one range checks are educational filters, not a physical
+climate model or evidence of life.
 
-## 🛠️ Key Features
+## Model evaluation
 
-- **Data Source:** Trained on curated data from the [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/).
-- **ML Architecture:** Implements a **Random Forest Classifier** to evaluate multi-feature planetary parameters.
-- **End-to-End Pipeline:** Includes data preprocessing, feature engineering, model training, and performance evaluation.
-- **Python Script & Notebook:** Includes both an interactive Jupyter Notebook (`notebooks/Project_v1.ipynb`) and a standalone modular Python script (`app/EXOPHCA.py`).
+The three-feature regressor used by the app was reported at approximately
+**R² = 0.811** and **RMSE = 0.0821** on its held-out evaluation split. The
+prepared dataset contains 5,613 rows. These metrics measure agreement with the
+project's formula-derived training target; they do not establish predictive
+accuracy for life or habitability. The project also documents a richer
+feature-set result separately; that model is not the one used for the TESS
+candidate predictions in this app.
 
----
+## Run locally
 
-## 📁 Repository Structure
-
-```text
-.
-├── README.md
-├── app/
-│   └── EXOPHCA.py
-├── notebooks/
-│   └── Project_v1.ipynb
-├── data/
-│   ├── TOI_2026.csv
-│   ├── planets_for_app.csv
-│   ├── toi_for_app.csv
-│   └── .gitkeep
-├── models/
-│   └── .gitkeep
-├── docs/
-│   ├── EXOPHCA_Report.docx
-│   ├── EXOPHCA_Presentation.pptx
-│   └── .gitkeep
-├── .gitignore
-└── requirements.txt (optional, if added later)
-```
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-Ensure you have Python 3.8+ installed along with the required libraries:
-
-```bash
-pip install numpy pandas scikit-learn matplotlib seaborn joblib streamlit
-```
-
-### Clone the Repository
+Use Python 3.11. The app model and preprocessed CSV datasets are included in
+the repository; no training run or NASA API credentials are needed to launch
+the app.
 
 ```bash
 git clone https://github.com/Gurjot-Singh-01/EXOPHCA.git
 cd EXOPHCA
+python -m venv .venv
 ```
 
-### Run the Project
-
-#### Option 1: Python Script
+Activate the environment (`.venv\Scripts\Activate.ps1` in Windows
+PowerShell, or `source .venv/bin/activate` on macOS/Linux), then run:
 
 ```bash
-python app/EXOPHCA.py
+python -m pip install -r requirements.txt
+python -m streamlit run app/EXOPHCA.py
 ```
 
-#### Option 2: Jupyter Notebook
+The Streamlit command prints the local URL to open in a browser.
+
+## Deploy
+
+The app is suitable for Streamlit Community Cloud:
+
+1. Push this repository to GitHub.
+2. Create a new app in Streamlit Community Cloud and select the repository,
+   branch, and `app/EXOPHCA.py` as the main file.
+3. Keep the repository's `.python-version` and `requirements.txt` so the
+   deployment uses the tested runtime and dependencies.
+
+The app loads the compatibility model and its CSV inputs from repository paths
+relative to the app file. Keep `models/rf_compat_model.pkl`,
+`data/planets_for_app.csv`, and `data/toi_for_app.csv` available in the
+deployment.
+
+## Tests
+
+Run the Streamlit smoke tests from the repository root:
 
 ```bash
-jupyter notebook notebooks/Project_v1.ipynb
+python -m unittest discover -s tests -v
 ```
 
-Run the notebook to generate rf_compat_model.pkl and rf_indirect_model.pkl.
+The notebook in [`notebooks/Project_v1.ipynb`](notebooks/Project_v1.ipynb)
+contains the exploratory/training workflow. To run it, install Jupyter with
+`python -m pip install jupyter` and provide the original NASA archive input
+`PSCD.csv` in the notebook's working directory; that large raw input is not
+bundled. The notebook's data-fetch/reproduction workflow still needs cleanup.
+The app does not depend on running the notebook.
 
----
+## Data and project materials
 
-## 📊 Model Performance & Metrics
+- The project uses public data from the
+  [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/).
+- The [training report](docs/EXOPHCA_Report.docx) and
+  [presentation](docs/EXOPHCA_Presentation.pptx) describe the academic work.
 
-The Random Forest model evaluates key exoplanet attributes and prioritizes feature importance to identify the factors that contribute most to planetary habitability. The workflow also includes evaluation metrics such as accuracy, precision, recall, and classification insights to validate model performance.
+## Project layout
 
----
+```text
+app/EXOPHCA.py                 Streamlit application
+data/planets_for_app.csv       Prepared known-planet comparison data
+data/toi_for_app.csv           Prepared TESS candidate comparison data
+models/rf_compat_model.pkl     Regressor used by the app
+notebooks/Project_v1.ipynb     Exploratory analysis and model training
+tests/test_app.py              Application smoke tests
+```
 
-## 🤝 Contributing
+## Acknowledgements
 
-Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/Gurjot-Singh-01/EXOPHCA/issues) if you'd like to contribute.
-
----
-
-## 👤 Author
-
-- **Gurjot Singh** - [@Gurjot-Singh-01](https://github.com/Gurjot-Singh-01)
-
----
-
-## License
-
-This project is available for educational and research use.
+Created by [Gurjot Singh](https://github.com/Gurjot-Singh-01) as an educational
+and research project. See the linked report and presentation for project
+context and methodology.
