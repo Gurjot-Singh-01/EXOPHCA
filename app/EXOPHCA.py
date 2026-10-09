@@ -5,6 +5,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 import colorsys
+from pathlib import Path
+
+# Resolve paths relative to this file's location
+SCRIPT_DIR = Path(__file__).resolve().parent.parent  # Go up one level from app/ to repo root
+MODEL_DIR = SCRIPT_DIR / "models"
+DATA_DIR = SCRIPT_DIR / "data"
 
 def get_planet_color(insol):
     # Map insolation to a cold->hot color gradient (log scale, centered near Earth=1.0)
@@ -117,9 +123,9 @@ def generate_size_comparison_html(pl_rade, pl_insol):
     return html
 
 # Load trained models and data
-rf_compat = joblib.load('rf_compat_model.pkl')
-planets_df = pd.read_csv('planets_for_app.csv')
-toi_df = pd.read_csv('toi_for_app.csv')
+rf_compat = joblib.load(MODEL_DIR / 'rf_compat_model.pkl')
+planets_df = pd.read_csv(DATA_DIR / 'planets_for_app.csv')
+toi_df = pd.read_csv(DATA_DIR / 'toi_for_app.csv')
 
 
 st.set_page_config(page_title="EXOPHCA", page_icon="🪐", layout="centered")
