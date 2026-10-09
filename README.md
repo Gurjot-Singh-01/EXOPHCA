@@ -77,12 +77,13 @@ are extrapolations.
 ## Model evaluation
 
 The three-feature regressor used by the app was reported at approximately
-**R² = 0.811** and **RMSE = 0.0821** on its held-out evaluation split. The
-prepared dataset contains 5,613 rows. These metrics measure agreement with the
-project's formula-derived training target; they do not establish predictive
-accuracy for life or habitability. The project also documents a richer
-feature-set result separately; that model is not the one used for the TESS
-candidate predictions in this app.
+**R² = 0.8110** and **RMSE = 0.0821** on the original random 80/20 held-out
+split. Five-fold `GroupKFold` evaluation, grouped by host star, gives
+out-of-fold **R² = 0.8347** and **RMSE = 0.0767**. These metrics measure
+agreement with the project's formula-derived training target; they do not
+establish predictive accuracy for life or habitability. The project also
+documents a richer feature-set result separately; that model is not the one
+used for the TESS candidate predictions in this app.
 
 ## Run locally
 
@@ -152,10 +153,11 @@ python -m unittest discover -s tests -v
 
 The notebook in [`notebooks/Project_v1.ipynb`](notebooks/Project_v1.ipynb)
 contains the exploratory/training workflow. Jupyter is included in
-`requirements.txt`; start it with `python -m jupyter lab` and provide the
-original NASA archive input `PSCD.csv` in the notebook's working directory.
-That large raw input is not bundled. The notebook's data-fetch/reproduction
-workflow still needs cleanup. The app does not depend on running the notebook.
+`requirements.txt`; start it with `python -m jupyter lab`. Place the raw NASA
+archive exports at `data/PSCD.csv` and `data/TOI_2026.csv` before running the
+notebook; these source files are not bundled. The notebook reads and writes
+project data and model artifacts under `data/` and `models/`, respectively.
+The app does not depend on running the notebook.
 
 ## Data and project materials
 
@@ -182,3 +184,7 @@ tests/test_scoring.py          Scoring and inference validation tests
 Created by [Gurjot Singh](https://github.com/Gurjot-Singh-01) as an educational
 and research project. See the linked report and presentation for project
 context and methodology.
+
+## License
+
+This project is released under the [MIT License](LICENSE).

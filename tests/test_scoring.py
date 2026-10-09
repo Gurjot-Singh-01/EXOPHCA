@@ -22,6 +22,7 @@ from app.scoring import (
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = ROOT / "models" / "rf_compat_model.pkl"
+PLANETS_PATH = ROOT / "data" / "planets_for_app.csv"
 TOI_PATH = ROOT / "data" / "toi_for_app.csv"
 
 
@@ -93,7 +94,34 @@ class InferenceValidationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = joblib.load(MODEL_PATH)
+        cls.planets = pd.read_csv(PLANETS_PATH)
         cls.toi = pd.read_csv(TOI_PATH)
+
+    def test_every_planet_row_matches_the_scoring_formula(self):
+        expected = np.array(
+            [
+                calculate_esi(row.pl_rade, row.pl_insol)
+                + calculate_custom_adjustment(row.pl_rade, row.star_class)
+                for row in self.planets.itertuples(index=False)
+            ]
+        )
+        np.testing.assert_allclose(
+            expected,
+            self.planets["final_score"].to_numpy(dtype=float),
+            rtol=0.0,
+            atol=1e-6,
+        )
+
+    def test_every_toi_row_matches_the_saved_model_scoring(self):
+        expected = predict_compatibility(
+            self.model, self.toi.loc[:, list(MODEL_FEATURES)]
+        )
+        np.testing.assert_allclose(
+            expected,
+            self.toi["predicted_score"].to_numpy(dtype=float),
+            rtol=0.0,
+            atol=1e-6,
+        )
 
     def test_saved_artifact_has_expected_raw_feature_contract(self):
         self.assertEqual(tuple(self.model.feature_names_in_), MODEL_FEATURES)

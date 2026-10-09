@@ -201,7 +201,10 @@ PRESETS = {
 
 TOI_PRESETS = {
     "-- Select a preset --": None,
-    "TOI-7347.01 (top candidate)": {"pl_orbper": 60.834488, "st_teff": 3736.0, "sy_dist": 227.337},
+    (
+        "TOI-7347.01 (formula-ranked lead; unconfirmed TESS candidate that "
+        "fails the strict habitability gate)"
+    ): {"pl_orbper": 60.834488, "st_teff": 3736.0, "sy_dist": 227.337},
     "TOI-6714.01 (closest system)": {"pl_orbper": 4.767442, "st_teff": 2824.0, "sy_dist": 26.741},
     "TOI-2094.01": {"pl_orbper": 18.793175, "st_teff": 3457.0, "sy_dist": 50.0248},
     "TOI-450.01": {"pl_orbper": 10.714866, "st_teff": 3054.0, "sy_dist": 53.5063},
@@ -413,13 +416,11 @@ with tab3:
     Neither score is a measure of the probability that life exists.
 
     **2. Indirect Prediction (Machine Learning)**
-    For genuinely unconfirmed candidates — like real TESS Objects of Interest — radius and
-    insolation aren't yet measured. This model estimates a compatibility score using only
-    orbital period (days), stellar temperature (K), and distance (pc), in that feature order.
-    It estimates the formula-derived score used as its training target; it does not predict
-    the probability of extraterrestrial life or habitability and has not been calibrated as
-    a probability. Its live candidate comparisons are recomputed using the same loaded
-    artifact and raw-input contract.
+    For candidate comparisons, this model estimates the formula-derived score used as its
+    training target, using orbital period (days), stellar temperature (K), and distance
+    (pc), in that feature order. It does not predict the probability of extraterrestrial
+    life or habitability and has not been calibrated as a probability. Its live candidate
+    comparisons are recomputed using the same loaded artifact and raw-input contract.
 
     **A note on methodology — avoiding data leakage:**
     Early versions of this model used radius and insolation as *both* the training features
@@ -428,11 +429,10 @@ with tab3:
     measure agreement with the formula-derived target and do not establish generalization
     to new populations or life-detection ability.
 
-    **A curious finding:** applying this indirect model to Earth itself (assuming a nearby
-    placeholder distance) yields a surprisingly modest score of ~0.55 — notably lower than
-    Earth's true ESI of 1.0. This mirrors a real published result (Barnes et al., 2015),
-    where Earth scored only 82% habitable on a different index, due to detection-bias
-    effects in the training data favoring short-period planets over Earth's 365-day orbit.
+    **Earth example:** with a 365.25-day period, 5,778 K stellar temperature, and a
+    10 pc placeholder distance, the saved model predicts 0.551. Earth's base ESI from
+    radius and insolation is 1.0. These are outputs from different methods and inputs;
+    the difference is not evidence about measured habitability.
     """)
 
 

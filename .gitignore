@@ -27,7 +27,6 @@ env/
 data/raw/PSCD.csv
 data/raw/TOI_2026.csv
 data/*.csv
-!data/TOI_2026.csv
 !data/planets_for_app.csv
 !data/toi_for_app.csv
 

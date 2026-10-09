@@ -43,7 +43,10 @@ class AppSmokeTests(unittest.TestCase):
 
     def test_tess_candidate_prediction_renders(self):
         app = run_app()
-        app.tabs[1].selectbox[0].select("TOI-7347.01 (top candidate)")
+        app.tabs[1].selectbox[0].select(
+            "TOI-7347.01 (formula-ranked lead; unconfirmed TESS candidate "
+            "that fails the strict habitability gate)"
+        )
         app.tabs[1].button[0].click()
         app.run()
 
