@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from app.scoring import (
+from scoring import (
     FEATURE_UNITS,
     MODEL_FEATURES,
     TRAINING_RANGES,
