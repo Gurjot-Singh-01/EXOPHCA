@@ -12,6 +12,27 @@ SCRIPT_DIR = Path(__file__).resolve().parent.parent  # Go up one level from app/
 MODEL_DIR = SCRIPT_DIR / "models"
 DATA_DIR = SCRIPT_DIR / "data"
 
+
+def resolve_project_file(filename, search_dirs=None):
+    """Find a project file in the standard locations, including the repo root."""
+    candidates = []
+    default_dirs = [MODEL_DIR, DATA_DIR, SCRIPT_DIR]
+    if search_dirs:
+        default_dirs = list(search_dirs) + default_dirs
+
+    for directory in default_dirs:
+        candidate = directory / filename
+        candidates.append(candidate)
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    raise FileNotFoundError(
+        f"Could not find '{filename}'. Searched: {', '.join(str(p) for p in candidates)}"
+    )
+
+
 def get_planet_color(insol):
     # Map insolation to a cold->hot color gradient (log scale, centered near Earth=1.0)
     log_insol = np.log10(max(insol, 0.0001))
@@ -123,9 +144,9 @@ def generate_size_comparison_html(pl_rade, pl_insol):
     return html
 
 # Load trained models and data
-rf_compat = joblib.load(MODEL_DIR / 'rf_compat_model.pkl')
-planets_df = pd.read_csv(DATA_DIR / 'planets_for_app.csv')
-toi_df = pd.read_csv(DATA_DIR / 'toi_for_app.csv')
+rf_compat = joblib.load(resolve_project_file('rf_compat_model.pkl', [MODEL_DIR]))
+planets_df = pd.read_csv(resolve_project_file('planets_for_app.csv', [DATA_DIR]))
+toi_df = pd.read_csv(resolve_project_file('toi_for_app.csv', [DATA_DIR]))
 
 
 st.set_page_config(page_title="EXOPHCA", page_icon="🪐", layout="centered")
