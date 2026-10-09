@@ -5,6 +5,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+from app.scoring import (
+    FEATURE_UNITS,
+    MODEL_FEATURES,
+    TRAINING_RANGES,
+    calculate_custom_adjustment,
+    calculate_esi,
+    predict_compatibility,
+    training_range_warnings,
+    validate_nonnegative_finite,
+    validate_positive_finite,
+)
+
 # Resolve paths relative to this file's location
 SCRIPT_DIR = Path(__file__).resolve().parent.parent  # Go up one level from app/ to repo root
 MODEL_DIR = SCRIPT_DIR / "models"
@@ -150,6 +162,17 @@ def load_csv(filename):
 rf_compat = load_compatibility_model()
 planets_df = load_csv("planets_for_app.csv")
 toi_df = load_csv("toi_for_app.csv")
+toi_df["predicted_score"] = predict_compatibility(
+    rf_compat,
+    toi_df.loc[:, list(MODEL_FEATURES)],
+)
+outside_training_range = pd.Series(False, index=toi_df.index)
+for feature in MODEL_FEATURES:
+    lower, upper = TRAINING_RANGES[feature]
+    outside_training_range |= (
+        (toi_df[feature] < lower) | (toi_df[feature] > upper)
+    )
+candidate_extrapolation_count = int(outside_training_range.sum())
 
 st.title("🪐 EXOPHCA")
 st.subheader("Exoplanet Habitability Compatibility Analysis")
@@ -194,28 +217,31 @@ with tab1:
     preset_choice = st.selectbox("Or load a known planet:", list(PRESETS.keys()))
     preset = PRESETS[preset_choice]
 
-    pl_rade = st.number_input("Planet Radius (Earth radii)", min_value=0.01, 
+    pl_rade = st.number_input("Planet Radius (Earth radii)",
                                 value=preset["pl_rade"] if preset else 1.0, step=0.01)
-    pl_insol = st.number_input("Insolation Flux (Earth flux = 1.0)", min_value=0.0001, 
+    pl_insol = st.number_input("Insolation Flux (Earth flux = 1.0)", min_value=0.0,
                                  value=preset["pl_insol"] if preset else 1.0, step=0.01, format="%.4f")
     star_class = st.selectbox("Host Star Class", ["G (Sun-like)", "K", "M (red dwarf)", "F", "A (hot)"],
                                 index=["G (Sun-like)", "K", "M (red dwarf)", "F", "A (hot)"].index(preset["star_class"]) if preset else 0)
 
-    if st.button("Calculate Habitability Score", key="exact"):
-        def esi_component(value, earth_value, weight):
-            return (1 - abs((value - earth_value) / (value + earth_value))) ** weight
+    exact_clicked = st.button("Calculate Compatibility Scores", key="exact")
+    exact_input_error = None
+    try:
+        validated_radius = validate_positive_finite("Planet radius", pl_rade)
+        validated_insolation = validate_nonnegative_finite("Insolation flux", pl_insol)
+        esi = calculate_esi(validated_radius, validated_insolation)
+        bonus = calculate_custom_adjustment(validated_radius, star_class)
+    except ValueError as error:
+        exact_input_error = str(error)
 
-        radius_esi = esi_component(pl_rade, 1.0, 0.57)
-        insol_esi = esi_component(pl_insol, 1.0, 0.7)
-        esi = (radius_esi * insol_esi) ** 0.5
-
-        bonus = 0
-        if star_class == "K":
-            bonus += 0.05
-        if 1.0 < pl_rade <= 1.5:
-            bonus += 0.05
-
+    if exact_clicked and exact_input_error:
+        st.error(exact_input_error)
+    if exact_clicked and exact_input_error is None:
         final_score = esi + bonus
+        for warning in training_range_warnings(
+            {"pl_rade": validated_radius, "pl_insol": validated_insolation}
+        ):
+            st.warning(warning)
         in_hz = 0.35 <= pl_insol <= 1.1
         is_rocky = pl_rade < 1.75
 
@@ -227,23 +253,43 @@ with tab1:
             score_delta = None
 
         st.metric(
-            "Formula-based compatibility score",
+            "Base ESI (radius + insolation)",
+            f"{esi:.3f}",
+        )
+        st.metric(
+            "Custom research-inspired adjustment",
+            f"+{bonus:.3f}",
+        )
+        st.metric(
+            "Custom-adjusted score (base ESI + project bonus)",
             f"{final_score:.3f}",
             delta=score_delta,
         )
+        st.caption(
+            "Base ESI = sqrt((1 - |(R - 1)/(R + 1)|)^0.57 × "
+            "(1 - |(S - 1)/(S + 1)|)^0.7), where R is radius in Earth radii "
+            "and S is insolation in Earth flux. For R > 0 and S >= 0, base ESI "
+            "range: [0, 1]. "
+            "The unscaled custom-adjusted score adds 0.05 for a K-class host "
+            "and 0.05 when 1 < R ≤ 1.5; for valid inputs its range is "
+            "[0, 1.1)."
+        )
 
         if in_hz and is_rocky:
-            st.success("✅ Habitable Zone Candidate (passes strict criteria)")
+            st.success("✅ Passes the project's illustrative size/insolation screen")
         else:
             reasons = []
             if not in_hz:
                 reasons.append("insolation flux outside habitable zone range (0.35–1.1)")
             if not is_rocky:
                 reasons.append("radius suggests a gas giant, not rocky")
-            st.warning(f"⚠️ Not a strict candidate — {', '.join(reasons)}.")
+            st.warning(f"⚠️ Does not pass the project's illustrative screen — {', '.join(reasons)}.")
 
         if bonus > 0:
-            st.info(f"Superhabitability bonus applied: +{bonus:.2f} ({star_class} host / favorable size)")
+            st.info(
+                f"Custom research-inspired adjustment: +{bonus:.2f} "
+                f"({star_class} host / favorable size). This is separate from base ESI."
+            )
 
         # --- Size comparison visual ---
         st.markdown("#### Size Comparison")
@@ -272,31 +318,49 @@ with tab1:
 with tab2:
     st.markdown("### Enter limited/indirect planet properties")
     st.caption("Use this for unconfirmed candidates where only orbital period, stellar temperature, and distance are known.")
+    st.caption(
+        "Model contract: raw numeric inputs in the order pl_orbper (days), "
+        "st_teff (K), sy_dist (pc); no scaling or other preprocessing is applied."
+    )
+    range_text = "; ".join(
+        f"{name} [{TRAINING_RANGES[name][0]:g}, {TRAINING_RANGES[name][1]:g}] "
+        f"{FEATURE_UNITS[name]}"
+        for name in MODEL_FEATURES
+    )
+    st.caption(
+        "Observed training-data ranges (outside-range values are extrapolations, "
+        f"not hard limits): {range_text}."
+    )
 
     toi_preset_choice = st.selectbox("Or load a real TESS candidate:", list(TOI_PRESETS.keys()))
     toi_preset = TOI_PRESETS[toi_preset_choice]
 
-    pl_orbper = st.number_input("Orbital Period (days)", min_value=0.01, 
+    pl_orbper = st.number_input("Orbital Period (days)",
                                   value=toi_preset["pl_orbper"] if toi_preset else 365.25, step=0.1)
-    st_teff = st.number_input("Stellar Effective Temperature (K)", min_value=1000.0, 
+    st_teff = st.number_input("Stellar Effective Temperature (K)",
                                 value=toi_preset["st_teff"] if toi_preset else 5778.0, step=10.0)
-    sy_dist = st.number_input("Distance from Earth (parsecs)", min_value=0.01, 
+    sy_dist = st.number_input("Distance from Earth (parsecs)",
                                 value=toi_preset["sy_dist"] if toi_preset else 100.0, step=1.0)
-    if st.button("Predict Habitability Score", key="indirect"):
+    prediction_clicked = st.button("Predict Compatibility Score", key="indirect")
+    prediction_input_error = None
+    try:
         feature_values = {
-            "pl_orbper": pl_orbper,
-            "st_teff": st_teff,
-            "sy_dist": sy_dist,
+            "pl_orbper": validate_positive_finite("Orbital period", pl_orbper),
+            "st_teff": validate_positive_finite("Stellar effective temperature", st_teff),
+            "sy_dist": validate_positive_finite("Distance from Earth", sy_dist),
         }
-        feature_names = rf_compat.feature_names_in_
-        X_input = pd.DataFrame(
-            [[feature_values[name] for name in feature_names]],
-            columns=feature_names,
-        )
-        predicted_score = rf_compat.predict(X_input)[0]
+    except ValueError as error:
+        prediction_input_error = str(error)
+
+    if prediction_clicked and prediction_input_error:
+        st.error(prediction_input_error)
+    if prediction_clicked and prediction_input_error is None:
+        for warning in training_range_warnings(feature_values):
+            st.warning(warning)
+        predicted_score = predict_compatibility(rf_compat, feature_values)[0]
 
         st.metric(
-            "Model-estimated compatibility score",
+            "Model estimate of its training-target score",
             f"{predicted_score:.3f}",
             delta="Estimate, not exact",
         )
@@ -306,6 +370,12 @@ with tab2:
         )
         st.caption(
             "This is a model estimate, not a probability of life or habitability. "
+            "It estimates the formula-derived score used as its training target and "
+            "has not been calibrated as a probability. Candidate comparison scores "
+            "are recomputed from the same loaded model artifact and raw-input contract. "
+            f"{candidate_extrapolation_count:,} of {len(toi_df):,} bundled candidate "
+            "inputs fall outside at least one observed training range, so those "
+            "comparison predictions are extrapolations. "
             "Tab 1 and Tab 2 use different methods and their scores are not directly "
             f"comparable. {candidates_scoring_at_least_as_high:,} of "
             f"{len(toi_df):,} bundled TESS candidates score this highly or higher."
@@ -322,7 +392,7 @@ with tab2:
         ax3.set_ylabel('Stellar Effective Temperature (K)')
         ax3.legend()
         cbar = plt.colorbar(ax3.collections[0], ax=ax3)
-        cbar.set_label('Predicted Habitability Score')
+        cbar.set_label('Model estimate of training-target score')
         st.pyplot(fig3)
         plt.close(fig3)
 
@@ -334,25 +404,29 @@ with tab3:
     This tool compares exoplanets with Earth using two complementary approaches, built on
     NASA Exoplanet Archive data (PSCompPars + TESS Objects of Interest).
 
-    **1. Exact Score (Earth Similarity Index)**
-    When a planet's radius and insolation flux are precisely known, a formula-based score
-    (adapted from Schulze-Makuch et al., 2011) compares it directly to Earth (Earth = 1.0).
-    It is a similarity score, not a measure of the probability that life exists.
-    A small bonus is added for planets orbiting K-type stars or slightly larger than Earth,
-    reflecting research on "superhabitable" worlds (Heller & Armstrong, 2014).
+    **1. Base ESI and custom-adjusted score**
+    The base ESI uses radius R (Earth radii) and insolation S (Earth-relative flux):
+    sqrt((1 - |(R - 1)/(R + 1)|)^0.57 × (1 - |(S - 1)/(S + 1)|)^0.7).
+    For positive finite inputs its range is (0, 1], with Earth = 1.0. Separately,
+    the project adds 0.05 for a K-class host and 0.05 when 1 < R <= 1.5.
+    The unscaled adjusted score is in (0, 1.1); it is not capped or rescaled.
+    Neither score is a measure of the probability that life exists.
 
     **2. Indirect Prediction (Machine Learning)**
     For genuinely unconfirmed candidates — like real TESS Objects of Interest — radius and
     insolation aren't yet measured. This model estimates a compatibility score using only
-    orbital period, stellar temperature, and distance: properties available even before
-    a planet is fully confirmed. It does not predict whether life exists.
+    orbital period (days), stellar temperature (K), and distance (pc), in that feature order.
+    It estimates the formula-derived score used as its training target; it does not predict
+    the probability of extraterrestrial life or habitability and has not been calibrated as
+    a probability. Its live candidate comparisons are recomputed using the same loaded
+    artifact and raw-input contract.
 
     **A note on methodology — avoiding data leakage:**
     Early versions of this model used radius and insolation as *both* the training features
     *and* the basis of the target score, producing a nearly perfect (and meaningless) R² of
-    0.99. This model deliberately excludes those variables, using only genuinely independent
-    or indirect properties, giving a more honest R² of approximately 0.81–0.92 depending on
-    feature set. 
+    0.99. This model excludes those target-defining variables. Its reported held-out metrics
+    measure agreement with the formula-derived target and do not establish generalization
+    to new populations or life-detection ability.
 
     **A curious finding:** applying this indirect model to Earth itself (assuming a nearby
     placeholder distance) yields a surprisingly modest score of ~0.55 — notably lower than
@@ -374,9 +448,9 @@ with tab4:
             "Earth; 11.2 means the same size as Jupiter.",
         "Habitable Zone": "The range of distance (or insolation) from a star where a planet "
             "could plausibly have liquid water on its surface — not too hot, not too cold.",
-        "Earth Similarity Index (ESI)": "A formula that scores how similar a planet is to Earth, "
-            "from 0 (nothing alike) to 1.0 (identical to Earth). Planets can occasionally score "
-            "above 1.0 if they're considered even more favorably suited than Earth on certain traits.",
+        "Earth Similarity Index (ESI)": "The unadjusted radius-and-insolation formula score, "
+            "in [0, 1] for valid finite inputs, with Earth = 1.0. EXOPHCA separately shows "
+            "a custom-adjusted score that can exceed 1 because it adds project-defined bonuses.",
         "Superhabitability": "The idea that some planets could be even more suitable for life "
             "than Earth — for example, orbiting a longer-lived star, or being slightly larger "
             "with a longer-lasting atmosphere.",
