@@ -37,25 +37,46 @@ candidate predictions in this app.
 
 ## Run locally
 
-Use Python 3.11. The app model and preprocessed CSV datasets are included in
-the repository; no training run or NASA API credentials are needed to launch
-the app.
+Use Python 3.12 (the clean environment and tests were verified with Python
+3.12.6). The app model and preprocessed CSV datasets are included in the
+repository; no training run or NASA API credentials are needed to launch the
+app.
 
 ```bash
 git clone https://github.com/Gurjot-Singh-01/EXOPHCA.git
 cd EXOPHCA
-python -m venv .venv
 ```
 
-Activate the environment (`.venv\Scripts\Activate.ps1` in Windows
-PowerShell, or `source .venv/bin/activate` on macOS/Linux), then run:
+Create and activate a virtual environment using the Python 3.12 launcher:
+
+**Windows PowerShell**
+
+```bash
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+**macOS/Linux**
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+```
+
+With the environment active, install dependencies and run the tests:
 
 ```bash
 python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
+```
+
+Start the app from the repository root:
+
+```bash
 python -m streamlit run app/EXOPHCA.py
 ```
 
-The Streamlit command prints the local URL to open in a browser.
+Streamlit prints the local URL to open in a browser.
 
 ## Deploy
 
@@ -81,11 +102,11 @@ python -m unittest discover -s tests -v
 ```
 
 The notebook in [`notebooks/Project_v1.ipynb`](notebooks/Project_v1.ipynb)
-contains the exploratory/training workflow. To run it, install Jupyter with
-`python -m pip install jupyter` and provide the original NASA archive input
-`PSCD.csv` in the notebook's working directory; that large raw input is not
-bundled. The notebook's data-fetch/reproduction workflow still needs cleanup.
-The app does not depend on running the notebook.
+contains the exploratory/training workflow. Jupyter is included in
+`requirements.txt`; start it with `python -m jupyter lab` and provide the
+original NASA archive input `PSCD.csv` in the notebook's working directory.
+That large raw input is not bundled. The notebook's data-fetch/reproduction
+workflow still needs cleanup. The app does not depend on running the notebook.
 
 ## Data and project materials
 
