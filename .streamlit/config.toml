@@ -1,0 +1,37 @@
+# EXOPHCA theme.
+#
+# One restrained accent (a muted teal), a single sans-serif family, and an
+# explicit palette for light and dark so the app is readable in either
+# appearance without relying on inferred colours. Data colours (habitable-zone
+# classes, tiers) live in app/ui.py and are chosen to sit on both backgrounds.
+
+[theme]
+primaryColor = "#2F6B7A"
+font = "sans serif"
+
+[theme.light]
+primaryColor = "#2F6B7A"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F2F5F6"
+textColor = "#1F2A2E"
+linkColor = "#2F6B7A"
+
+[theme.dark]
+primaryColor = "#7FB2BE"
+backgroundColor = "#0E1416"
+secondaryBackgroundColor = "#182124"
+textColor = "#E6ECEE"
+linkColor = "#9CC6CF"
+
+[server]
+# The Calculator refuses an upload larger than this anyway (MAX_UPLOAD_BYTES in
+# app/batch.py), so the server stops reading at the same ceiling.
+maxUploadSize = 2
+# pythonVersion is not a Streamlit 1.66 config option - "server.pythonVersion"
+# is reported as invalid and ignored - so do not set it here. The interpreter is
+# pinned by .python-version and pyproject.toml (requires-python ">=3.14"); pick
+# 3.14 in the host's own settings before the first deploy, because an older
+# interpreter fails the install rather than the app.
+
+[browser]
+gatherUsageStats = false

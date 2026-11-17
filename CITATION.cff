@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use EXOPHCA, cite it as below."
+title: "EXOPHCA — Exoplanet Habitability Compatibility Analysis"
+abstract: >-
+  An educational data-science project that scores how closely known exoplanets
+  and TESS Objects of Interest resemble Earth in radius and stellar insolation.
+  It ships a Streamlit app whose every number is read from committed CSV files,
+  and the reproducible pipeline that produced them: archive ingestion, Kopparapu
+  habitable-zone classification, an ESI-style two-parameter similarity, a
+  host-star-split radius model with conformal intervals, and explicit
+  uncertainty propagation. Similarity is not habitability and none of it is
+  evidence of life.
+authors:
+  - family-names: "Singh"
+    given-names: "Gurjot"
+version: 1.0.0
+date-released: "2026-11-17"
+license: MIT
+repository-code: "https://github.com/Gurjot-Singh-01/EXOPHCA"
+keywords:
+  - exoplanets
+  - habitable zone
+  - earth similarity index
+  - uncertainty propagation
+  - streamlit
+  - python
+notes: >-
+  Data snapshot: July 2026. The committed CSVs, the model artifact and every
+  published metric belong to two NASA Exoplanet Archive exports retrieved that
+  month. Regenerating from a later export will change the counts, the metrics
+  and the artifact hash.

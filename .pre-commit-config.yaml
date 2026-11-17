@@ -1,0 +1,38 @@
+# Pre-commit hygiene for the tracked tree.
+#
+#   python -m pip install pre-commit
+#   pre-commit install              # once per clone
+#   pre-commit run --all-files      # run over everything
+#
+# Scope note, so the next reader is not surprised. The whitespace hooks skip
+# three paths on purpose:
+#   - data/reference/  is a vendored Python 2 reference implementation;
+#   - data/processed/  is generated output whose bytes are pinned elsewhere;
+#   - app/assets/architecture.html is an embedded diagram asset.
+# None of them may be reformatted. Every other tracked file satisfies the
+# hooks, so `pre-commit run --all-files` passes on the tree as it stands.
+#
+# The ruff hook is restricted to the bug-finding rules that already pass,
+# deliberately: the default rule set reports 239 stylistic findings and
+# applying them would be a reformat.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: ^(data/reference/|data/processed/|app/assets/architecture\.html)
+      - id: end-of-file-fixer
+        exclude: ^(data/reference/|data/processed/|app/assets/architecture\.html)
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.5
+    hooks:
+      - id: ruff
+        name: ruff (bug-finding rules only)
+        args: [--select, "E9,F63,F7,F82"]
+        # Vendored Python 2 reference implementation; never imported by the app.
+        exclude: ^data/reference/

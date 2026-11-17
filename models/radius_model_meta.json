@@ -1,0 +1,690 @@
+{
+  "generated_on": "2026-10-20",
+  "python": "3.14.0",
+  "library_versions": {
+    "python": "3.14.0",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "joblib": "1.6.0",
+    "lightgbm": "4.7.0"
+  },
+  "lightgbm_used": true,
+  "random_seed": 42,
+  "features": [
+    "log10_pl_bmasse",
+    "log10_pl_orbper",
+    "st_teff",
+    "st_mass",
+    "st_rad"
+  ],
+  "raw_features": [
+    "pl_bmasse",
+    "pl_orbper",
+    "st_teff",
+    "st_mass",
+    "st_rad"
+  ],
+  "target": "log10(pl_rade)",
+  "forbidden_features": [
+    "pl_rade",
+    "pl_radeerr1",
+    "pl_radeerr2",
+    "pl_radelim",
+    "pl_dens",
+    "pl_insol",
+    "pl_insolerr1",
+    "pl_insolerr2",
+    "pl_eqt",
+    "pl_orbsmax",
+    "sy_dist",
+    "disc_year",
+    "discoverymethod",
+    "base_score",
+    "final_score",
+    "radius_provenance",
+    "mass_provenance",
+    "hz_class",
+    "tier",
+    "evidence_quality",
+    "uncertainty_status",
+    "scorable",
+    "p_conservative_hz",
+    "p_any_hz",
+    "p_radius_le_1p6",
+    "p_rocky_and_conservative"
+  ],
+  "test_host_fraction": 0.2,
+  "calibration_host_fraction": 0.2,
+  "cv_folds": 5,
+  "target_interval_coverage": 0.9,
+  "caveats": [
+    "The training selection is almost entirely transit planets (about 1608 Transit vs 29 Radial Velocity); per-split RV counts are reported.",
+    "The model is trained on true masses. Planets with a modelled radius are mostly RV discoveries with Msini (a minimum mass); predictions for them assume sin(i) = 1 and the true radius may differ.",
+    "Out-of-distribution flag: True when any feature lies outside the 1st-99th percentile range of the training features.",
+    "This model estimates radius only. It says nothing about habitability."
+  ],
+  "pipeline_stage": 2,
+  "data_file": "data\\processed\\planets.csv",
+  "row_filters": {
+    "raw rows": 6319,
+    "radius_provenance == \"measured\"": 4742,
+    "pl_radeerr1 present and != 0": 4359,
+    "mass_provenance == \"Mass\"": 1695,
+    "all five features present and > 0": 1658
+  },
+  "split_sizes": {
+    "rows": {
+      "train": 1069,
+      "calibration": 274,
+      "test": 315
+    },
+    "hosts": {
+      "train": 826,
+      "calibration": 207,
+      "test": 258
+    },
+    "rv_rows": {
+      "train": 16,
+      "calibration": 3,
+      "test": 10
+    }
+  },
+  "test_host_hash": "71117774fc26099a96bb97ce26fcc612a69adeb9d58837fdbb5573cf0d80fd8e",
+  "test_host_count": 258,
+  "cv_baselines": {
+    "median": {
+      "kind": "baseline",
+      "metrics": {
+        "MAE": {
+          "mean": 0.37398174761216774,
+          "sd": 0.017538588067701526,
+          "se": 0.007843495029749459
+        },
+        "RMSE": {
+          "mean": 0.4094792850038026,
+          "sd": 0.016987634452380516,
+          "se": 0.00759710108248805
+        },
+        "R2": {
+          "mean": -0.017426702913133064,
+          "sd": 0.02299517371439355,
+          "se": 0.010283754315960061
+        },
+        "MedAPE": {
+          "mean": 65.0494999704536,
+          "sd": 1.7847606130050495,
+          "se": 0.7981692108486972
+        }
+      }
+    },
+    "power_law": {
+      "kind": "baseline",
+      "metrics": {
+        "MAE": {
+          "mean": 0.16886633710848442,
+          "sd": 0.008514490967562375,
+          "se": 0.0038077961194554854
+        },
+        "RMSE": {
+          "mean": 0.22438112102506155,
+          "sd": 0.01577096333824002,
+          "se": 0.007052989218992337
+        },
+        "R2": {
+          "mean": 0.6933226073687992,
+          "sd": 0.040983821582444895,
+          "se": 0.018328522207213958
+        },
+        "MedAPE": {
+          "mean": 29.973406173674295,
+          "sd": 1.4033047414434707,
+          "se": 0.6275769590030733
+        }
+      }
+    },
+    "piecewise_power_law": {
+      "kind": "baseline",
+      "metrics": {
+        "MAE": {
+          "mean": 0.13319994814207564,
+          "sd": 0.008734344506030172,
+          "se": 0.0039061176108770575
+        },
+        "RMSE": {
+          "mean": 0.19690855035156557,
+          "sd": 0.02060779685070517,
+          "se": 0.009216086924936568
+        },
+        "R2": {
+          "mean": 0.7621255803584595,
+          "sd": 0.05499961203438337,
+          "se": 0.02459657424899934
+        },
+        "MedAPE": {
+          "mean": 20.154903480659335,
+          "sd": 0.8026205847191172,
+          "se": 0.358942837514515
+        }
+      }
+    },
+    "ridge": {
+      "kind": "baseline",
+      "metrics": {
+        "MAE": {
+          "mean": 0.16505394370416163,
+          "sd": 0.007734320587901771,
+          "se": 0.003458893318864899
+        },
+        "RMSE": {
+          "mean": 0.21700452777495535,
+          "sd": 0.013627580137676058,
+          "se": 0.006094439111333921
+        },
+        "R2": {
+          "mean": 0.7135300751529811,
+          "sd": 0.031579437928859616,
+          "se": 0.014122753980033053
+        },
+        "MedAPE": {
+          "mean": 30.160152656239347,
+          "sd": 1.3907048289729529,
+          "se": 0.6219421068441483
+        }
+      }
+    }
+  },
+  "cv_learners": {
+    "knn": {
+      "kind": "learner",
+      "metrics": {
+        "MAE": {
+          "mean": 0.11643020003122675,
+          "sd": 0.010165827502734473,
+          "se": 0.004546296268730242
+        },
+        "RMSE": {
+          "mean": 0.1777676153247606,
+          "sd": 0.02002414917618374,
+          "se": 0.008955071749908651
+        },
+        "R2": {
+          "mean": 0.8069590524457558,
+          "sd": 0.04024100251420348,
+          "se": 0.017996323420899785
+        },
+        "MedAPE": {
+          "mean": 15.844310400058657,
+          "sd": 2.005111798551278,
+          "se": 0.8967132568095043
+        }
+      },
+      "params": {
+        "n_neighbors": 9,
+        "p": 2,
+        "weights": "distance"
+      },
+      "trials": 24
+    },
+    "random_forest": {
+      "kind": "learner",
+      "metrics": {
+        "MAE": {
+          "mean": 0.11309624989466009,
+          "sd": 0.00902086033390669,
+          "se": 0.0040342513844293625
+        },
+        "RMSE": {
+          "mean": 0.17406182105342352,
+          "sd": 0.020172687678864813,
+          "se": 0.009021500187762833
+        },
+        "R2": {
+          "mean": 0.8153681509223242,
+          "sd": 0.03545358480309532,
+          "se": 0.015855325133154928
+        },
+        "MedAPE": {
+          "mean": 15.519981377772002,
+          "sd": 1.2376399705206005,
+          "se": 0.5534894211509797
+        }
+      },
+      "params": {
+        "max_depth": null,
+        "max_features": 1.0,
+        "min_samples_leaf": 3
+      },
+      "trials": 32
+    },
+    "lightgbm": {
+      "kind": "learner",
+      "metrics": {
+        "MAE": {
+          "mean": 0.11577748908297354,
+          "sd": 0.005250883414618663,
+          "se": 0.0023482664514027085
+        },
+        "RMSE": {
+          "mean": 0.17932142395859474,
+          "sd": 0.016796883665707158,
+          "se": 0.007511794737335411
+        },
+        "R2": {
+          "mean": 0.8044832031664839,
+          "sd": 0.028490705091117056,
+          "se": 0.012741430662127415
+        },
+        "MedAPE": {
+          "mean": 15.52563458667072,
+          "sd": 0.8590238155208455,
+          "se": 0.3841671291591699
+        }
+      },
+      "params": {
+        "colsample_bytree": 1.0,
+        "learning_rate": 0.02,
+        "min_child_samples": 5,
+        "n_estimators": 400,
+        "num_leaves": 31,
+        "reg_lambda": 5.0,
+        "subsample": 0.7
+      },
+      "trials": 32
+    }
+  },
+  "cv_stratum_mae": [
+    {
+      "model": "median",
+      "all rows": 0.3739841269308927,
+      "mass < 10": 0.45732206019573074,
+      "10 <= mass <= 100": 0.26600280174284435,
+      "mass > 100": 0.37719577084252676
+    },
+    {
+      "model": "power_law",
+      "all rows": 0.16886905978834468,
+      "mass < 10": 0.12434305439243791,
+      "10 <= mass <= 100": 0.19327530279583366,
+      "mass > 100": 0.18690782820569293
+    },
+    {
+      "model": "piecewise_power_law",
+      "all rows": 0.1332053554597704,
+      "mass < 10": 0.11761096595564673,
+      "10 <= mass <= 100": 0.1880002588805856,
+      "mass > 100": 0.11207645598042915
+    },
+    {
+      "model": "ridge",
+      "all rows": 0.1650514617711901,
+      "mass < 10": 0.12343467782404267,
+      "10 <= mass <= 100": 0.1918306812193804,
+      "mass > 100": 0.17955692372094137
+    },
+    {
+      "model": "knn",
+      "all rows": 0.11644059849128816,
+      "mass < 10": 0.10780449877317315,
+      "10 <= mass <= 100": 0.1642102748636513,
+      "mass > 100": 0.09439844165570448
+    },
+    {
+      "model": "random_forest",
+      "all rows": 0.11310489226782952,
+      "mass < 10": 0.10236358057383874,
+      "10 <= mass <= 100": 0.15894804037471402,
+      "mass > 100": 0.09374380812870219
+    },
+    {
+      "model": "lightgbm",
+      "all rows": 0.11578178883985893,
+      "mass < 10": 0.10782125726112952,
+      "10 <= mass <= 100": 0.1562423288691227,
+      "mass > 100": 0.09758398706260692
+    }
+  ],
+  "decision": {
+    "rule": "learner CV MAE < best baseline CV MAE - best baseline CV SE AND learner test MAE < best baseline test MAE",
+    "best_baseline": "piecewise_power_law",
+    "best_baseline_cv_mae": 0.13319994814207564,
+    "best_baseline_cv_sd": 0.008734344506030172,
+    "best_baseline_cv_se": 0.0039061176108770575,
+    "cv_threshold": 0.12929383053119858,
+    "learners": [
+      {
+        "learner": "knn",
+        "cv_mae": 0.11643020003122675,
+        "improvement_vs_baseline": 0.016769748110848887,
+        "clears_cv_threshold": true
+      },
+      {
+        "learner": "random_forest",
+        "cv_mae": 0.11309624989466009,
+        "improvement_vs_baseline": 0.02010369824741555,
+        "clears_cv_threshold": true
+      },
+      {
+        "learner": "lightgbm",
+        "cv_mae": 0.11577748908297354,
+        "improvement_vs_baseline": 0.0174224590591021,
+        "clears_cv_threshold": true
+      }
+    ],
+    "chosen_model": "random_forest",
+    "chosen_kind": "learner",
+    "chosen_params": {
+      "max_depth": null,
+      "max_features": 1.0,
+      "min_samples_leaf": 3
+    },
+    "chosen_cv_mae": 0.11309624989466009,
+    "recommended": true,
+    "verdict": "RECOMMENDED: random_forest beats the best baseline on both criteria - CV MAE 0.113096 is below the threshold 0.129294, and test MAE 0.117679 is below piecewise_power_law's 0.127806."
+  },
+  "piecewise_breakpoints_mass_earth": [
+    10.0,
+    100.0
+  ],
+  "intervals": {
+    "nominal_coverage": 0.9,
+    "selection_rule": "drop under-covering methods; then narrower mean width; then higher coverage; a 0.5 percent width tie goes to split conformal",
+    "cv_comparison": {
+      "split_conformal": [
+        {
+          "stratum": "all rows",
+          "n": 1069,
+          "coverage": 0.9073900841908326,
+          "mean_width_dex": 0.5870689073374351,
+          "mean_width_rearth": 10.697349094003533
+        },
+        {
+          "stratum": "mass < 10",
+          "n": 336,
+          "coverage": 0.9315476190476191,
+          "mean_width_dex": 0.5849677057932923,
+          "mean_width_rearth": 3.040153432237056
+        },
+        {
+          "stratum": "10 <= mass <= 100",
+          "n": 273,
+          "coverage": 0.8315018315018315,
+          "mean_width_dex": 0.5924664452022818,
+          "mean_width_rearth": 7.036074559210985
+        },
+        {
+          "stratum": "mass > 100",
+          "n": 460,
+          "coverage": 0.9347826086956522,
+          "mean_width_dex": 0.5854003766455413,
+          "mean_width_rearth": 18.463317986072884
+        }
+      ],
+      "cqr": [
+        {
+          "stratum": "all rows",
+          "n": 1069,
+          "coverage": 0.9139382600561272,
+          "mean_width_dex": 0.5472130478505143,
+          "mean_width_rearth": 8.438450257765082
+        },
+        {
+          "stratum": "mass < 10",
+          "n": 336,
+          "coverage": 0.9255952380952381,
+          "mean_width_dex": 0.5305053960388617,
+          "mean_width_rearth": 2.8043611135459563
+        },
+        {
+          "stratum": "10 <= mass <= 100",
+          "n": 273,
+          "coverage": 0.8791208791208791,
+          "mean_width_dex": 0.6933462572849202,
+          "mean_width_rearth": 8.224991940440303
+        },
+        {
+          "stratum": "mass > 100",
+          "n": 460,
+          "coverage": 0.9260869565217391,
+          "mean_width_dex": 0.47269001487904155,
+          "mean_width_rearth": 12.680467807954843
+        }
+      ]
+    },
+    "recommended_on_cv": "cqr",
+    "reason": "neither method is uniformly calibrated: both meet overall coverage but each under-covers in at least one mass stratum beyond the tolerance. cqr has the smaller worst-stratum shortfall (0.021 in '10 <= mass <= 100' vs 0.068 in '10 <= mass <= 100'), and the narrower mean width (0.547 vs 0.587 dex).",
+    "cv_checks": {
+      "split_conformal": {
+        "overall": 0.9073900841908326,
+        "worst_stratum": "10 <= mass <= 100",
+        "worst_coverage": 0.8315018315018315,
+        "shortfall": 0.06849816849816848,
+        "passes": false
+      },
+      "cqr": {
+        "overall": 0.9139382600561272,
+        "worst_stratum": "10 <= mass <= 100",
+        "worst_coverage": 0.8791208791208791,
+        "shortfall": 0.020879120879120916,
+        "passes": false
+      }
+    },
+    "test_checks": {
+      "split_conformal": {
+        "overall": 0.9111111111111111,
+        "worst_stratum": "mass < 10",
+        "worst_coverage": 0.8732394366197183,
+        "shortfall": 0.026760563380281766,
+        "passes": false
+      },
+      "cqr": {
+        "overall": 0.8952380952380953,
+        "worst_stratum": "mass < 10",
+        "worst_coverage": 0.7746478873239436,
+        "shortfall": 0.1253521126760564,
+        "passes": false
+      }
+    },
+    "final_recommended": "split_conformal",
+    "verdict": "split_conformal, not cqr. cqr was narrower and better calibrated on CV, but on the test split its worst stratum 'mass < 10' covers 0.775 at a nominal 0.90 (shortfall 0.125), while split_conformal has a shortfall of 0.027 in 'mass < 10' (coverage 0.873). Coverage is the promise an interval makes, so it outranks the width advantage, and no model was refitted to obtain this check.",
+    "split_conformal_half_width_dex": 0.29404086615338776,
+    "split_conformal_achieved_level": 0.9018181818181819,
+    "cqr_quantile_dex": 0.07103286422210138
+  },
+  "permutation_importance": [
+    {
+      "feature": "log10_pl_bmasse",
+      "mae_increase_mean": 0.2803301235333641,
+      "mae_increase_sd": 0.007418353738914813
+    },
+    {
+      "feature": "log10_pl_orbper",
+      "mae_increase_mean": 0.03607770085382074,
+      "mae_increase_sd": 0.0011658908126976862
+    },
+    {
+      "feature": "st_rad",
+      "mae_increase_mean": 0.02106245988033088,
+      "mae_increase_sd": 0.0017131440862599402
+    },
+    {
+      "feature": "st_teff",
+      "mae_increase_mean": 0.008037624002728198,
+      "mae_increase_sd": 0.0004883658796820108
+    },
+    {
+      "feature": "st_mass",
+      "mae_increase_mean": 0.0049644579859124405,
+      "mae_increase_sd": 0.001041938578034889
+    }
+  ],
+  "permutation_importance_baseline_mae": 0.11310489226782951,
+  "feature_bounds": {
+    "log10_pl_bmasse": [
+      -0.26723200198558344,
+      3.644389043818462
+    ],
+    "log10_pl_orbper": [
+      -0.31548594169373084,
+      3.003191785818911
+    ],
+    "st_teff": [
+      3100.68,
+      7500.0
+    ],
+    "st_mass": [
+      0.1844,
+      1.8324799999999977
+    ],
+    "st_rad": [
+      0.2159,
+      2.8857199999999987
+    ]
+  },
+  "test_metrics": {
+    "chosen_model": {
+      "MAE": 0.11767869420882449,
+      "RMSE": 0.1832499489333467,
+      "R2": 0.7930881312626418,
+      "MedAPE": 15.092280940410705
+    },
+    "best_baseline_piecewise_power_law": {
+      "MAE": 0.12780649995145557,
+      "RMSE": 0.197235376383674,
+      "R2": 0.760300402432964,
+      "MedAPE": 17.03053404761584
+    },
+    "per_stratum": [
+      {
+        "model": "chosen model",
+        "stratum": "all rows",
+        "n": 315,
+        "MAE": 0.11767869420882449,
+        "RMSE": 0.1832499489333467,
+        "MedAPE": 15.092280940410705
+      },
+      {
+        "model": "chosen model",
+        "stratum": "mass < 10",
+        "n": 71,
+        "MAE": 0.1290876638394142,
+        "RMSE": 0.19354720125618252,
+        "MedAPE": 19.31182703171547
+      },
+      {
+        "model": "chosen model",
+        "stratum": "10 <= mass <= 100",
+        "n": 83,
+        "MAE": 0.14884994408639232,
+        "RMSE": 0.19181867689403362,
+        "MedAPE": 29.23349632563096
+      },
+      {
+        "model": "chosen model",
+        "stratum": "mass > 100",
+        "n": 161,
+        "MAE": 0.09657775890689906,
+        "RMSE": 0.17381790350209123,
+        "MedAPE": 10.235979454944914
+      },
+      {
+        "model": "best baseline (piecewise_power_law)",
+        "stratum": "all rows",
+        "n": 315,
+        "MAE": 0.12780649995145557,
+        "RMSE": 0.197235376383674,
+        "MedAPE": 17.03053404761584
+      },
+      {
+        "model": "best baseline (piecewise_power_law)",
+        "stratum": "mass < 10",
+        "n": 71,
+        "MAE": 0.14108742879511826,
+        "RMSE": 0.2060531240882157,
+        "MedAPE": 25.264795723282855
+      },
+      {
+        "model": "best baseline (piecewise_power_law)",
+        "stratum": "10 <= mass <= 100",
+        "n": 83,
+        "MAE": 0.1501179308089761,
+        "RMSE": 0.19118968182212312,
+        "MedAPE": 23.765684085526125
+      },
+      {
+        "model": "best baseline (piecewise_power_law)",
+        "stratum": "mass > 100",
+        "n": 161,
+        "MAE": 0.1104475266031683,
+        "RMSE": 0.1963267461250691,
+        "MedAPE": 14.992580512041103
+      }
+    ]
+  },
+  "test_interval_coverage": {
+    "split_conformal": [
+      {
+        "stratum": "all rows",
+        "n": 315,
+        "coverage": 0.9111111111111111,
+        "mean_width_dex": 0.5880817323067756,
+        "mean_width_rearth": 11.499859250157646
+      },
+      {
+        "stratum": "mass < 10",
+        "n": 71,
+        "coverage": 0.8732394366197183,
+        "mean_width_dex": 0.5880817323067755,
+        "mean_width_rearth": 2.8360629770275856
+      },
+      {
+        "stratum": "10 <= mass <= 100",
+        "n": 83,
+        "coverage": 0.8795180722891566,
+        "mean_width_dex": 0.5880817323067756,
+        "mean_width_rearth": 6.564665504087444
+      },
+      {
+        "stratum": "mass > 100",
+        "n": 161,
+        "coverage": 0.9440993788819876,
+        "mean_width_dex": 0.5880817323067756,
+        "mean_width_rearth": 17.864769910505853
+      }
+    ],
+    "cqr": [
+      {
+        "stratum": "all rows",
+        "n": 315,
+        "coverage": 0.8952380952380953,
+        "mean_width_dex": 0.4957329254150942,
+        "mean_width_rearth": 7.901323190040637
+      },
+      {
+        "stratum": "mass < 10",
+        "n": 71,
+        "coverage": 0.7746478873239436,
+        "mean_width_dex": 0.445189456395634,
+        "mean_width_rearth": 2.2325239450017116
+      },
+      {
+        "stratum": "10 <= mass <= 100",
+        "n": 83,
+        "coverage": 0.9156626506024096,
+        "mean_width_dex": 0.6360706711187017,
+        "mean_width_rearth": 6.9161997469423095
+      },
+      {
+        "stratum": "mass > 100",
+        "n": 161,
+        "coverage": 0.937888198757764,
+        "mean_width_dex": 0.4456742509243007,
+        "mean_width_rearth": 10.909087116592964
+      }
+    ]
+  },
+  "test_ood_rows": 12,
+  "artifact_path": "models\\radius_model.joblib",
+  "test_evaluated": true,
+  "test_evaluated_on": "2026-10-20"
+}

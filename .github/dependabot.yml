@@ -1,0 +1,27 @@
+version: 2
+
+# Weekly dependency PRs. constraints.txt is the file that decides what CI
+# installs, so a bump that only reaches pyproject.toml must also refresh the
+# constraints file before CI can see it - check the PR diff for both.
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"

@@ -1,0 +1,9 @@
+name,mean_radius_km,semimajor_axis_km,source
+Mercury,2439.7,57910000,NASA NSSDCA Mercury Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/mercuryfact.html
+Venus,6051.8,108210000,NASA NSSDCA Venus Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/venusfact.html
+Earth,6371.0,149600000,NASA NSSDCA Earth Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+Mars,3389.5,227920000,NASA NSSDCA Mars Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
+Jupiter,69911,778570000,NASA NSSDCA Jupiter Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/jupiterfact.html
+Saturn,58232,1433530000,NASA NSSDCA Saturn Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/saturnfact.html
+Uranus,25362,2872460000,NASA NSSDCA Uranus Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/uranusfact.html
+Neptune,24622,4495060000,NASA NSSDCA Neptune Fact Sheet - volumetric mean radius and semimajor axis; checked 2026-10-26 at nssdc.gsfc.nasa.gov/planetary/factsheet/neptunefact.html

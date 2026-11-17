@@ -1,0 +1,8 @@
+name,pl_rade,pl_insol,st_teff
+Kepler-452 b,1.63,1.1,5757
+Proxima Cen b,1.02,0.641,2900
+TOI-700 d,1.073,0.85,
+Hot star,1.0,1.0,9000
+Bad radius,abc,1.0,5000
+Zero radius,0,1.0,5000
+Negative flux,1.0,-0.2,5000

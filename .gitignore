@@ -1,0 +1,63 @@
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+.Python
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files (large/raw datasets and private outputs)
+data/raw/
+data/PSCD.csv
+data/TOI_2026.csv
+
+# Logs & temporary progress outputs
+*.log
+.full-suite.log
+.streamlit-run.log
+
+# Models (ignoring large binaries/pickles, keeping metadata if needed)
+models/*.pkl
+*.pkl
+*.joblib
+!models/radius_model.joblib
+
+# Build & distribution
+build/
+dist/
+*.egg-info/
+
+# Unpublished deliverables and working records
+# The written report, the presentation and the per-phase working records are
+# kept locally and are deliberately not part of the published repository.
+docs/progress/
+docs/*.docx
+docs/*.pptx
+
+# Local agent / tooling state
+.claude/
+.freebuff/
+.cloud-attachments/
+
+*.egg-info/
+.full-suite*.log

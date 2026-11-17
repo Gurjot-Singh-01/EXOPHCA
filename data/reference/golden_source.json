@@ -1,0 +1,17 @@
+{
+    "note": "The July 2026 NASA Exoplanet Archive exports that data/reference/golden_base_score.csv was built from and that every number in README.md describes. Copied from data/processed/*.provenance.json before any rebuild, because build_dataset.py overwrites those provenance files. Nothing in scripts/ or exophca/ writes this file; it is a test fixture pinned to one export.",
+    "pscd": {
+        "file": "data/PSCD.csv",
+        "sha256": "01aba7f0cf186fed49a85fe6114aa096650729c8428e338ac7f47df900497474",
+        "byte_length": 48107049,
+        "row_count": 6319,
+        "retrieval_timestamp": "Sat Jul 11 08:35:38 2026"
+    },
+    "toi": {
+        "file": "data/TOI_2026.csv",
+        "sha256": "743a9acc54c504a723c484a617cb9f9539bb180bd74dd46f386b1fe0868e2bcc",
+        "byte_length": 4587939,
+        "row_count": 8064,
+        "retrieval_timestamp": "Sun Jul 19 06:26:22 2026"
+    }
+}
