@@ -425,7 +425,7 @@ record are in `models/radius_model_meta.json`.
   R² 0.7621). These folds saw only train and calibration rows; nothing below
   influenced them.
 - **Selection-influenced.** Held-out test split: **MAE 0.1177 dex, RMSE
-  0.1833, R² 0.7931, median absolute percentage error 15.1%** (best baseline:
+  0.1832, R² 0.7931, median absolute percentage error 15.1%** (best baseline:
   MAE 0.1278, R² 0.7603). This split was consulted **twice** — once to choose
   the interval method, once to confirm that the random forest is the
   recommended learner — so it is not an untouched holdout and these are not
@@ -471,7 +471,7 @@ changed after the number was seen is visible.
 | --- | ---: | ---: |
 | Rows / hosts | 315 / 258 | 274 / 207 |
 | MAE (dex) | 0.1177 | **0.1212** |
-| RMSE (dex) | 0.1833 | 0.1966 |
+| RMSE (dex) | 0.1832 | 0.1966 |
 | R² | 0.7931 | 0.7936 |
 | Median absolute percentage error | 15.1% | 15.0% |
 | Best baseline MAE (piecewise power law, dex) | 0.1278 | 0.1352 |
@@ -692,7 +692,7 @@ data/
 models/
   radius_model.joblib        Trained artifact (read offline, never by the app)
   radius_model_meta.json     Metrics, splits, decisions and interval history
-tests/                       305 unittest tests plus tests/data/batch_example.csv
+tests/                       309 unittest tests plus tests/data/batch_example.csv
 docs/                        Not published: the report, presentation and the working
                              records are kept outside this repository
 notebooks/archive/           The original exploratory notebook (kept for provenance)
@@ -705,7 +705,7 @@ python -m unittest discover -s tests -v
 ```
 
 From the repository root, with the virtualenv active or its interpreter used
-directly. The suite is 305 tests and covers the science modules, the data
+directly. The suite is 311 tests and covers the science modules, the data
 pipeline, the model artifact, every Streamlit page (via `AppTest`), and cold
 starts in fresh processes.
 
@@ -746,25 +746,42 @@ the `exophca` modules, the scripts and the app views connect, with the path of
 each arrow verifiable in the repository. Open it in the running app under
 Reference → Architecture.
 
-## Screenshots — to be captured
+## Screenshots
 
-The seven captures below are planned, not taken: the app has not been launched
-with a browser to record them, and no placeholder image stands in for one. Each
-line names the page and the state the capture should show.
+All seven were captured from the running app on 2026-11-19, started with the project
+interpreter (`.venv\Scripts\python.exe -m streamlit run app/EXOPHCA.py`) and driven
+with Chrome in light mode at 1440 px wide. They show the app as it stands at this
+commit; nothing is mocked. The images were cropped to the content and palette
+quantised so the repository stays light — no content was altered. The files live in
+`assets/screenshots/`.
 
-[SCREENSHOT: Overview — headline counts, dataset provenance and the disclaimer]
+### Overview
 
-[SCREENSHOT: Planet Explorer — the filterable planet table with uncertainty labels]
+![The EXOPHCA Overview page: the two dataset cards with their row counts and provenance digests, the bar charts that split the assessed planets by habitable-zone class and by compatibility tier, and the panel explaining what the score does and does not mean](assets/screenshots/overview.png)
 
-[SCREENSHOT: Planet Detail — one planet's score, criteria, interval and caveats]
+### Planet Explorer
 
-[SCREENSHOT: Compare — two planets side by side against Earth]
+![The Planet Explorer page: the filter panel above the table of all 5,688 assessed planets, with columns for the host, discovery method, discovery year, star class, radius and radius provenance](assets/screenshots/planet-explorer.png)
 
-[SCREENSHOT: Diagrams — mass–radius and habitable-zone figures]
+### Planet Detail
 
-[SCREENSHOT: Calculator — formula calculator with solar-system and archive presets]
+![The Planet Detail page for Kepler-452 b: compatibility tier B, a score of 0.909 with its 16th-84th percentile range of 0.855 to 0.920, a conservative habitable zone, the criteria behind the class, and the boundary-sensitive caveat](assets/screenshots/planet-detail.png)
 
-[SCREENSHOT: Architecture — the embedded architecture diagram]
+### Compare
+
+![The Compare page with Kepler-452 b and Proxima Cen b set against Earth: score bars carrying the 16th-84th percentile range, a table of score, radius, provenance and habitable-zone class, and the note that Proxima Cen b has a modelled radius](assets/screenshots/compare.png)
+
+### Diagrams
+
+![The Diagrams page: every assessed planet plotted against the habitable-zone flux limits against host temperature, and the mass-radius relation with the modelled-giant band called out](assets/screenshots/diagrams.png)
+
+### Calculator
+
+![The Calculator page: the radius and insolation inputs, the solar-system and archive presets, and the note that a whole CSV can be scored in one go](assets/screenshots/calculator.png)
+
+### Architecture
+
+![The Architecture page: the full project diagram, from the two archive exports through the validators, the science modules and the radius model to the pages that read the results, with the three explanation panels below it](assets/screenshots/architecture.png)
 
 ## Project materials
 
@@ -793,7 +810,18 @@ produced it. Nothing in the README is typed from memory.
 | CV MAE 0.1131, R2 0.8154 | `models/radius_model_meta.json` (`cv_learners`) | `scripts/train_radius_model.py` |
 | Test MAE 0.1177, coverage 0.9111 | `models/radius_model_meta.json` (`test_metrics`, `test_interval_coverage`) | the same script, one evaluation, `--force` never used |
 | Holdout MAE 0.1212, coverage 0.8723 | `models/radius_model_holdout.json` | `scripts/holdout_evaluation.py`, run 2026-11-19 |
-| Suite size, 305 tests | the run output of `python -m unittest discover -s tests` | this tree; CI ran 303 on `c556719` |
+| Suite size, 311 tests | the run output of `python -m unittest discover -s tests` | local run on this tree, `Ran 311 tests ... OK`; the last green CI run covered 305 on `aa8f5cc` |
+
+**One stored string is a historical artefact, not a current claim.** The `reason`
+in `models/radius_model_meta.json` still reads "... 0.021 in '10 <= mass <= 100'
+vs 0.068 in '10 <= mass <= 100'": an earlier generator printed the winning
+method's stratum label on both halves of the comparison. The two numbers were
+right; the label on the losing half was not. That file is the protected record of
+the run that produced it, so it is not edited. The generator is fixed and now
+names each method's own worst stratum, as the pool reason recorded in
+`models/radius_model_holdout.json` does - "cqr has the smaller worst-stratum
+shortfall (0.064 in '10 <= mass <= 100') than split_conformal (0.078 in '10 <=
+mass <= 100')" - which is the corrected form of the same sentence.
 
 Who chose what: the formula weights come from Schulze-Makuch et al. (2011) and
 are not tuned here; the habitable-zone limits come from Kopparapu et al.; the

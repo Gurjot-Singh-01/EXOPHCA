@@ -2,7 +2,7 @@
   "holdout_evaluated": true,
   "holdout_evaluated_on": "2026-11-19",
   "script": "scripts/holdout_evaluation.py",
-  "recipe_hash": "ac89d59e8596790affc444d35d7b70f6844e0839d3ce34066179037700c6d151",
+  "recipe_hash": "9473f1519d34fef57452701d6767a29f0d090027f4def5142bfc22c6cc9f5e94",
   "recipe_files": [
     "exophca/ml/radius_model.py",
     "scripts/train_radius_model.py",
@@ -29,7 +29,7 @@
     "fit_hosts": 661,
     "calibration_rows": 237,
     "calibration_hosts": 165,
-    "pool_host_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "pool_host_hash": "1876575fa15ca1875e90a8e4c3b08c2cca0ae0ef9d95fdc31519e1373d3042ba"
   },
   "holdout": {
     "description": "the released calibration split - the only hosts no model was fitted on",
@@ -53,8 +53,8 @@
       },
       {
         "learner": "random_forest",
-        "cv_mae": 0.1173114467614037,
-        "improvement_vs_baseline": 0.015551781336145487,
+        "cv_mae": 0.11731144676140375,
+        "improvement_vs_baseline": 0.015551781336145445,
         "clears_cv_threshold": true
       },
       {
@@ -71,7 +71,7 @@
       "max_features": 1.0,
       "min_samples_leaf": 2
     },
-    "chosen_cv_mae": 0.1173114467614037
+    "chosen_cv_mae": 0.11731144676140375
   },
   "interval_recommended_on_cv_in_pool": "cqr",
   "interval_reason_in_pool": "neither method is uniformly calibrated: both meet overall coverage but each under-covers in at least one mass stratum beyond the tolerance. cqr has the smaller worst-stratum shortfall (0.064 in '10 <= mass <= 100') than split_conformal (0.078 in '10 <= mass <= 100'), and the narrower mean width (0.505 vs 0.587 dex).",
@@ -81,7 +81,7 @@
         "stratum": "all rows",
         "n": 832,
         "coverage": 0.90625,
-        "mean_width_dex": 0.5871022602267065,
+        "mean_width_dex": 0.5871022602267064,
         "mean_width_rearth": 11.055377377300383
       },
       {
@@ -96,13 +96,13 @@
         "n": 213,
         "coverage": 0.8215962441314554,
         "mean_width_dex": 0.586074036064813,
-        "mean_width_rearth": 6.907484431377968
+        "mean_width_rearth": 6.907484431377969
       },
       {
         "stratum": "mass > 100",
         "n": 377,
         "coverage": 0.9363395225464191,
-        "mean_width_dex": 0.5876300424584363,
+        "mean_width_dex": 0.5876300424584362,
         "mean_width_rearth": 18.60312315457564
       }
     ],
@@ -139,16 +139,16 @@
   },
   "calibration": {
     "nominal_coverage": 0.9,
-    "split_conformal_half_width_dex": 0.26213676247410483,
+    "split_conformal_half_width_dex": 0.2621367624741048,
     "split_conformal_achieved_level": 0.9033613445378151,
     "split_conformal_order_statistic_k": 215,
     "cqr_quantile_dex": 0.08602488785326062
   },
   "holdout_point_metrics": {
     "MAE": 0.12123897783690651,
-    "RMSE": 0.19664293569703312,
-    "R2": 0.7936394476410176,
-    "MedAPE": 14.998232684333743
+    "RMSE": 0.19664293569703306,
+    "R2": 0.7936394476410177,
+    "MedAPE": 14.998232684333807
   },
   "holdout_baseline_metrics": {
     "MAE": 0.13518334590672043,
@@ -162,9 +162,9 @@
       "stratum": "all rows",
       "n": 274,
       "MAE": 0.12123897783690651,
-      "RMSE": 0.19664293569703312,
-      "R2": 0.7936394476410176,
-      "MedAPE": 14.998232684333743
+      "RMSE": 0.19664293569703306,
+      "R2": 0.7936394476410177,
+      "MedAPE": 14.998232684333807
     },
     {
       "stratum": "mass < 10",
@@ -172,23 +172,23 @@
       "MAE": 0.10397204763749365,
       "RMSE": 0.14423546689410455,
       "R2": 0.43473984339273086,
-      "MedAPE": 15.793998966989085
+      "MedAPE": 15.793998966989136
     },
     {
       "stratum": "10 <= mass <= 100",
       "n": 71,
-      "MAE": 0.15864469884536497,
-      "RMSE": 0.21356255129393145,
-      "R2": 0.46924679142721903,
+      "MAE": 0.15864469884536495,
+      "RMSE": 0.21356255129393142,
+      "R2": 0.46924679142721926,
       "MedAPE": 25.227927303268626
     },
     {
       "stratum": "mass > 100",
       "n": 126,
-      "MAE": 0.11071316381908307,
-      "RMSE": 0.21371653309444205,
-      "R2": 0.11530514233181943,
-      "MedAPE": 9.709404545105842
+      "MAE": 0.11071316381908304,
+      "RMSE": 0.21371653309444202,
+      "R2": 0.11530514233181977,
+      "MedAPE": 9.70940454510587
     }
   ],
   "holdout_interval_tables": {
@@ -197,29 +197,29 @@
         "stratum": "all rows",
         "n": 274,
         "coverage": 0.8722627737226277,
-        "mean_width_dex": 0.5242735249482098,
-        "mean_width_rearth": 9.850208934110679
+        "mean_width_dex": 0.5242735249482096,
+        "mean_width_rearth": 9.850208934110672
       },
       {
         "stratum": "mass < 10",
         "n": 77,
         "coverage": 0.9090909090909091,
-        "mean_width_dex": 0.5242735249482094,
-        "mean_width_rearth": 2.454498347488575
+        "mean_width_dex": 0.5242735249482092,
+        "mean_width_rearth": 2.4544983474885744
       },
       {
         "stratum": "10 <= mass <= 100",
         "n": 71,
         "coverage": 0.8028169014084507,
-        "mean_width_dex": 0.5242735249482094,
-        "mean_width_rearth": 6.111400151908841
+        "mean_width_dex": 0.5242735249482092,
+        "mean_width_rearth": 6.111400151908838
       },
       {
         "stratum": "mass > 100",
         "n": 126,
         "coverage": 0.8888888888888888,
-        "mean_width_dex": 0.5242735249482099,
-        "mean_width_rearth": 16.47659892384268
+        "mean_width_dex": 0.5242735249482096,
+        "mean_width_rearth": 16.476598923842673
       }
     ],
     "cqr": [

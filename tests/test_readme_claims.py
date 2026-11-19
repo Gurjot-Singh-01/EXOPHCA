@@ -46,14 +46,17 @@ EMBEDDED_PATH = re.compile(
 )
 
 SCREENSHOTS = (
-    "Overview",
-    "Planet Explorer",
-    "Planet Detail",
-    "Compare",
-    "Diagrams",
-    "Calculator",
-    "Architecture",
+    ("Overview", "overview.png"),
+    ("Planet Explorer", "planet-explorer.png"),
+    ("Planet Detail", "planet-detail.png"),
+    ("Compare", "compare.png"),
+    ("Diagrams", "diagrams.png"),
+    ("Calculator", "calculator.png"),
+    ("Architecture", "architecture.png"),
 )
+
+SCREENSHOT_DIR = "assets/screenshots"
+IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)\s]+)\)")
 
 
 def _thousands(number: int) -> str:
@@ -185,14 +188,45 @@ class ReadmeClaimTests(unittest.TestCase):
             f"{unpublished}",
         )
 
-    # (d) the screenshot placeholders ----------------------------------------
-    def test_every_screenshot_placeholder_is_still_present(self):
+    # (d) the screenshots -----------------------------------------------------
+    def test_no_screenshot_placeholder_is_left(self):
+        """The captures exist, so the placeholders must be gone."""
         placeholders = re.findall(r"\[SCREENSHOT: [^\]]+\]", self.text)
-        self.assertEqual(len(placeholders), len(SCREENSHOTS))
-        joined = "\n".join(placeholders)
-        for label in SCREENSHOTS:
+        self.assertEqual(
+            [],
+            placeholders,
+            "the screenshots have been captured; no placeholder may remain",
+        )
+
+    def test_every_screenshot_image_exists_with_alt_text(self):
+        # Remote badges are images too; only the repository's own files are checked.
+        images = [
+            (alt, target)
+            for alt, target in IMAGE.findall(self.text)
+            if not target.startswith("http")
+        ]
+        self.assertTrue(images, "the README must reference the screenshots")
+        for alt, target in images:
+            with self.subTest(target=target):
+                self.assertTrue(alt.strip(), f"{target} has no alt text")
+                self.assertTrue(
+                    target.startswith(f"{SCREENSHOT_DIR}/"),
+                    f"{target} is not under the published screenshot directory",
+                )
+                path = ROOT / target
+                self.assertTrue(path.is_file(), f"{target} is referenced but missing")
+                self.assertGreater(path.stat().st_size, 0, f"{target} is empty")
+
+    def test_every_planned_screenshot_was_captured(self):
+        referenced = {
+            target.rsplit("/", 1)[-1]
+            for _, target in IMAGE.findall(self.text)
+            if not target.startswith("http")
+        }
+        for label, filename in SCREENSHOTS:
             with self.subTest(label=label):
-                self.assertIn(label, joined)
+                self.assertIn(filename, referenced, f"no screenshot for {label}")
+                self.assertTrue((ROOT / SCREENSHOT_DIR / filename).is_file())
 
 
 if __name__ == "__main__":

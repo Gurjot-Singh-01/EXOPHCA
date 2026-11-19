@@ -331,7 +331,11 @@ def main() -> None:
             "fit_hosts": int(pool_fit[rm.GROUP_COLUMN].nunique()),
             "calibration_rows": int(len(pool_calibration)),
             "calibration_hosts": int(pool_calibration[rm.GROUP_COLUMN].nunique()),
-            "pool_host_hash": pool_summary.test_host_hash,
+            # The pool split is drawn with test_fraction=0.0, so its summary's
+            # test_host_hash is the SHA-256 of an empty host list. Record the
+            # hash of the pool's own hosts instead, so the field name and the
+            # value agree.
+            "pool_host_hash": rm.host_list_hash(set(pool[rm.GROUP_COLUMN])),
         },
         "holdout": {
             "description": "the released calibration split - the only hosts no model was fitted on",
