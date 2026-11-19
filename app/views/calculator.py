@@ -25,6 +25,7 @@ import streamlit as st  # noqa: E402
 import batch  # noqa: E402
 import calculator_widgets as widgets  # noqa: E402
 import data_access  # noqa: E402
+import methods_content  # noqa: E402
 import presets  # noqa: E402
 import ui  # noqa: E402
 from exophca.science.assessment import determine_size_regime  # noqa: E402
@@ -158,17 +159,9 @@ with results:
     elif exact_input_error:
         st.error(exact_input_error)
     else:
-        st.metric("ESI-style radius-flux similarity", f"{esi:.3f}")
-        st.text(f"Host is K-class: {'Yes' if flags['host_is_k_class'] else 'No'}")
-        st.text(f"Radius in 1.0–1.5 R⊕: {'Yes' if flags['radius_in_1_to_1p5'] else 'No'}")
-        st.caption(
-            "ESI-style radius-flux similarity = sqrt((1 - |(R - 1)/(R + 1)|)^0.57 × "
-            "(1 - |(S - 1)/(S + 1)|)^0.7), where R is radius in Earth radii "
-            "and S is insolation in Earth flux. For R > 0 and S >= 0, similarity "
-            "range: [0, 1]. "
-            "The informational flags above do not alter or add to the similarity score."
-        )
-
+        # The summary leads with the size regime and the habitable-zone class and
+        # shows the base score last, with the null result beside it. Leading with
+        # the score made it read as a ranking; see methods_content.SCORE_NULL_RESULT.
         st.text(f"Size regime: {determine_size_regime(validated_radius)}")
 
         st.markdown("#### Habitable-zone position")
@@ -211,6 +204,19 @@ with results:
                     f"{limits['optimistic_outer']:.3f}-{limits['optimistic_inner']:.3f} S⊕. "
                     "Habitable-zone position is not evidence of habitability or life."
                 )
+
+        st.markdown("#### Similarity score")
+        st.metric("ESI-style radius-flux similarity", f"{esi:.3f}")
+        st.text(f"Host is K-class: {'Yes' if flags['host_is_k_class'] else 'No'}")
+        st.text(f"Radius in 1.0–1.5 R⊕: {'Yes' if flags['radius_in_1_to_1p5'] else 'No'}")
+        st.caption(
+            "ESI-style radius-flux similarity = sqrt((1 - |(R - 1)/(R + 1)|)^0.57 × "
+            "(1 - |(S - 1)/(S + 1)|)^0.7), where R is radius in Earth radii "
+            "and S is insolation in Earth flux. For R > 0 and S >= 0, similarity "
+            "range: [0, 1]. "
+            "The informational flags above do not alter or add to the similarity score."
+        )
+        st.caption(f"**Read the score as a descriptive column.** {methods_content.SCORE_NULL_RESULT}")
 
 if score_requested and exact_input_error is None:
     st.divider()

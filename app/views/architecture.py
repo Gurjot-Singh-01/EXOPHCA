@@ -107,6 +107,17 @@ if not DIAGRAM_PATH.exists():
 # it replaces ``st.components.v1.html``, which this Streamlit version deprecates.
 embed_diagram()
 
+st.caption(
+    "**Text summary of the diagram.** Two NASA Exoplanet Archive exports (read as "
+    "`data/PSCD.csv` and `data/TOI_2026.csv`) pass through the validators and "
+    "cleaners in `exophca/data/`, and the scripts write `data/processed/*.csv`. "
+    "The modules in `exophca/science/` compute the score, the habitable-zone "
+    "class and the uncertainty; `scripts/assess.py` combines them into "
+    "`planets_assessed.csv`. Offline, `scripts/train_radius_model.py` fits "
+    "`models/radius_model.joblib` and `scripts/estimate_radii.py` applies it. "
+    "The Streamlit pages in `app/views/` read only the processed CSVs."
+)
+
 st.divider()
 
 st.markdown("#### How it was made")

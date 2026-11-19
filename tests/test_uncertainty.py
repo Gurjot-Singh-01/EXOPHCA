@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from exophca.science.uncertainty import sample_twopiece_normal, propagate_uncertainties
-from exophca.science.assessment import determine_tier, determine_evidence_quality, assess_planets, DISCLAIMER
 
 
 class UncertaintyTests(unittest.TestCase):

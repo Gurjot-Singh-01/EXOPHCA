@@ -1,0 +1,17 @@
+# Line endings.
+#
+# Every text file is stored with LF in the repository and checked out with LF on
+# every platform, so a Windows working tree and a Linux CI runner produce the
+# same bytes. This fences the class of defect that broke the first CI run: a test
+# hashed data/processed/planets_assessed.csv, the stored blob was LF, and
+# core.autocrlf=true on a Windows clone had written CRLF into the working tree.
+#
+# Binary files are excluded from the normaliser. models/radius_model.joblib is a
+# pickled model whose digest is pinned in tests/test_ml_predict.py, so a single
+# byte of difference would break the guard.
+* text=auto eol=lf
+*.joblib binary
+*.pkl binary
+*.png binary
+*.jpg binary
+*.jpeg binary

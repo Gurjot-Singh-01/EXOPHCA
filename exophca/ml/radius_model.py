@@ -37,7 +37,7 @@ from typing import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, RegressorMixin, clone
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GroupKFold
@@ -940,12 +940,16 @@ def recommend_interval_method(
         )
         winner = ordered[0]
         loser = ordered[1]
+        # Both numbers must name their own method: an earlier version printed the
+        # winner's stratum label on both sides of the comparison, so the sentence
+        # mislabelled its own numbers even though they were correct.
         reason = (
             "neither method is uniformly calibrated: both meet overall coverage but each "
             "under-covers in at least one mass stratum beyond the tolerance. "
             f"{winner} has the smaller worst-stratum shortfall "
-            f"({checks[winner]['shortfall']:.3f} in '{checks[winner]['worst_stratum']}' vs "
-            f"{checks[loser]['shortfall']:.3f} in '{checks[loser]['worst_stratum']}'), and "
+            f"({checks[winner]['shortfall']:.3f} in '{checks[winner]['worst_stratum']}') "
+            f"than {loser} ({checks[loser]['shortfall']:.3f} in "
+            f"'{checks[loser]['worst_stratum']}'), and "
             f"the narrower mean width ({width[winner]:.3f} vs {width[loser]:.3f} dex)."
         )
     return winner, reason

@@ -60,6 +60,19 @@ LIMITS = [
     ),
 ]
 
+# The null result about the base score, stated once and reused. Every surface
+# that shows the score shows this sentence beside it, so the score cannot read as
+# a ranking instrument on one page and as a descriptive column on another.
+SCORE_NULL_RESULT = (
+    "Ranked against a plain unweighted proximity to Earth in the same two "
+    "properties (`|log10 R| + |log10 S|`, no exponents and no borrowed weight), "
+    "the ordering agrees almost perfectly - Spearman rho = 0.992 over the 5,641 "
+    "planets with a usable radius and flux - so the score is very close to a "
+    "monotone transform of radius and flux and carries almost no ordering "
+    "information of its own. That is a null result: read the score as a "
+    "descriptive column, not as a habitability ranking."
+)
+
 
 def _f(value, digits: int = 3) -> str:
     """Format a number from the training report; a missing one stays visible."""
@@ -212,16 +225,12 @@ def render(*, include_radius_model: bool = False) -> None:
     )
 
     st.markdown(
-        "**What the score adds over its own two columns.** Measured, not asserted: "
-        "ranked against a plain unweighted proximity to Earth in the same two "
-        "properties (`|log10 R| + |log10 S|`, no exponents and no borrowed "
-        "weight), the ordering agrees almost perfectly - Spearman rho = 0.992 "
-        "over the 5,641 planets with a usable radius and flux. Banding by rank "
-        "with the committed tier sizes, 26 of those planets (0.46%) land in a "
-        "different band, and 17 of the 18 top-band planets are the same ones. "
-        "That is a null result: the score is very close to a monotone transform "
-        "of radius and flux and adds almost no ordering information of its own. "
-        "Read it as a descriptive column, not as a habitability ranking."
+        "**What the score adds over its own two columns.** Measured, not asserted. "
+        + SCORE_NULL_RESULT
+        + " Banding by rank with the committed tier sizes, 26 of those planets "
+        "(0.46%) land in a different band and 17 of the 18 top-band planets are "
+        "the same ones. The 0.7287 agreement with the published PHL ESI is partly "
+        "agreement about one shared input, for the same reason."
     )
 
     st.markdown("#### The habitable zone")

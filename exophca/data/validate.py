@@ -1,8 +1,6 @@
 """EXOPHCA data validation module."""
 
-from typing import Any
 import pandas as pd
-import numpy as np
 
 
 def validate_dataframe(df: pd.DataFrame, required_columns: list[str], name: str) -> list[str]:

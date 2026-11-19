@@ -94,7 +94,6 @@ class PiecewiseBaselineTests(unittest.TestCase):
 
     def test_recovers_each_segment_exactly(self):
         masses = np.array([1.0, 3.0, 9.0, 10.0, 40.0, 99.0, 100.0, 700.0, 4000.0])
-        log_mass = np.log10(masses)
         intercepts = {rm.PIECEWISE_SEGMENTS[0]: 0.1, rm.PIECEWISE_SEGMENTS[1]: -0.2,
                       rm.PIECEWISE_SEGMENTS[2]: 1.1}
         slopes = {rm.PIECEWISE_SEGMENTS[0]: 0.5, rm.PIECEWISE_SEGMENTS[1]: 0.3,

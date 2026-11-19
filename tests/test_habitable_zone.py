@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from exophca.science.habitable_zone import hz_limits, classify_hz, HZ_CONSTANTS
+from exophca.science.habitable_zone import hz_limits, classify_hz
 
 
 class HabitableZoneTests(unittest.TestCase):

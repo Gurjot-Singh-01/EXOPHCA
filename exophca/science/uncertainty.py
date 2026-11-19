@@ -4,7 +4,6 @@ import time
 import numpy as np
 import pandas as pd
 
-from exophca.science.esi import calculate_esi
 from exophca.science.habitable_zone import classify_hz
 
 

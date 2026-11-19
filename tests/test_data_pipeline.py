@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,7 +11,6 @@ import numpy as np
 
 from exophca.data.validate import validate_dataframe
 from exophca.data.clean import clean_planets_dataset, clean_toi_dataset
-from exophca.science.esi import calculate_esi
 
 
 def archive_sha256(path: Path) -> str:
@@ -50,9 +50,16 @@ def archive_hash_skip_reason(pscd_path: Path, source_path: Path) -> str | None:
     it. data/processed/PSCD.provenance.json is NOT usable here, because
     scripts/build_dataset.py rewrites it on every rebuild, which would make the
     guard compare a new archive against itself. A different download is a new
-    dataset, not a regression, so the comparison must skip rather than fail. When
-    the hashes match the regression runs unchanged; when the fixture or its
-    recorded hash is missing, the check stays out of the way.
+    dataset, not a regression, so the comparison cannot be a pass/fail on the
+    numbers. When the hashes match the regression runs unchanged; when the
+    fixture or its recorded hash is missing, the check stays out of the way.
+
+    A mismatched archive is a *loud* failure by design (see
+    ``test_golden_baseline_regression``): the golden baseline is pinned to the
+    July 2026 export, so any other archive makes the comparison meaningless and
+    silently skipping it would hide a real regression. Set
+    ``EXOPHCA_EXPECT_SNAPSHOT=1`` when you deliberately rebuilt from a different
+    export and want the skip instead of the failure.
     """
     recorded = golden_source_sha256(source_path)
     if not recorded:
@@ -139,7 +146,19 @@ class DataPipelineTests(unittest.TestCase):
 
         mismatch = archive_hash_skip_reason(pscd_path, source_path)
         if mismatch:
-            self.skipTest(mismatch)
+            # An archive that is present but is not the pinned July 2026 export
+            # is a failure, not a skip: the golden file cannot be compared with
+            # it, and a silent skip would hide a regression behind a re-download.
+            # EXOPHCA_EXPECT_SNAPSHOT=1 acknowledges a deliberate rebuild from a
+            # different export, where skipping is the honest outcome.
+            if os.environ.get("EXOPHCA_EXPECT_SNAPSHOT") == "1":
+                self.skipTest(f"EXOPHCA_EXPECT_SNAPSHOT=1: {mismatch}")
+            self.fail(
+                "archive present but not the pinned snapshot; the golden baseline "
+                "cannot be checked against it. Restore the July 2026 export, or "
+                "set EXOPHCA_EXPECT_SNAPSHOT=1 if you rebuilt from a different "
+                f"one on purpose. Details: {mismatch}"
+            )
 
         df_golden = pd.read_csv(golden_path)
         df_raw = pd.read_csv(pscd_path, comment='#', low_memory=False)

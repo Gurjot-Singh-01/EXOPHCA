@@ -28,6 +28,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from exophca.ml.predict import (  # noqa: E402
+    EXPECTED_ARTIFACT_SHA256,
     OUTPUT_COLUMNS,
     load_radius_artifact,
     predict_radius,
@@ -59,9 +60,9 @@ def canonical_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 # The committed model artifact is a pickle: loading one executes code from it,
-# so a replaced artifact is a supply-chain surface. Its digest is pinned here,
-# next to the assessed table's, and checked in EstimatorArtifactTests.
-ARTIFACT_SHA256 = "6b3d62e901a0598b03bb637b86b53ce003d7637857b975a0ade9e767849cc2de"
+# so a replaced artifact is a supply-chain surface. Its digest lives in the
+# loader that enforces it - exophca.ml.predict.EXPECTED_ARTIFACT_SHA256 - and is
+# imported here so the pin and the guard cannot drift apart.
 
 # A Planet with a measured mass, inside every training feature bound.
 EARTH_LIKE = {
@@ -139,10 +140,23 @@ class ArtifactLoadingTests(unittest.TestCase):
             path = Path(scratch) / "fake.joblib"
             joblib.dump(fake, path)
 
-            artifact, warnings = load_radius_artifact(path)
+            artifact, warnings = load_radius_artifact(path, expected_sha256=None)
 
         self.assertEqual(fake, artifact)
         self.assertTrue(any("differs" in text for text in warnings))
+
+    def test_a_tampered_artifact_is_refused_before_it_is_unpickled(self):
+        """The digest is checked first, so a replaced pickle is never loaded."""
+        with tempfile.TemporaryDirectory() as scratch:
+            path = Path(scratch) / "tampered.joblib"
+            path.write_bytes(ARTIFACT_PATH.read_bytes() + b"\n")
+
+            artifact, warnings = load_radius_artifact(path)
+
+        self.assertIsNone(artifact)
+        self.assertEqual(1, len(warnings), warnings)
+        self.assertIn("refusing to load", warnings[0])
+        self.assertIn(EXPECTED_ARTIFACT_SHA256, warnings[0])
 
 
 class PredictContractTests(unittest.TestCase):
@@ -349,7 +363,14 @@ class EstimatorArtifactTests(unittest.TestCase):
     def test_the_committed_artifact_still_matches_its_sha256(self):
         digest = hashlib.sha256(ARTIFACT_PATH.read_bytes()).hexdigest()
 
-        self.assertEqual(ARTIFACT_SHA256, digest)
+        self.assertEqual(EXPECTED_ARTIFACT_SHA256, digest)
+
+    def test_the_loader_accepts_the_committed_artifact(self):
+        """The guard passes on the committed file: no warning, artifact present."""
+        artifact, warnings = load_radius_artifact(ARTIFACT_PATH)
+
+        self.assertIsNotNone(artifact)
+        self.assertEqual([], warnings)
 
     def test_the_meta_report_still_declares_the_same_interval(self):
         meta = json.loads(META_PATH.read_text(encoding="utf-8"))

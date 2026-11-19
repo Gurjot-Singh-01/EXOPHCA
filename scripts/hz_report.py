@@ -1,7 +1,6 @@
 """Script for Phase 3 Habitable Zone report and verification tasks."""
 
 from pathlib import Path
-import numpy as np
 import pandas as pd
 
 from exophca.science.habitable_zone import hz_limits, classify_hz
@@ -12,7 +11,6 @@ def main():
     data_dir = project_root / 'data'
     processed_dir = data_dir / 'processed'
     reference_dir = data_dir / 'reference'
-    docs_progress_dir = project_root / 'docs' / 'progress'
 
     planets_csv = processed_dir / 'planets.csv'
     df_planets = pd.read_csv(planets_csv)

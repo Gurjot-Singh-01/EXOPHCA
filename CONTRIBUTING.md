@@ -34,10 +34,20 @@ For a quicker loop:
 python -m unittest tests.test_scoring tests.test_habitable_zone -v
 ```
 
-Two tests need the untracked raw exports and skip when those files are absent,
-and the golden regression skips when `data/PSCD.csv` is not the July 2026 export
-whose sha256 is pinned in `data/reference/golden_source.json`. Those skips are
-expected on a fresh clone.
+Two tests need the untracked raw exports and skip when those files are absent;
+that is expected on a fresh clone. The golden regression **fails loudly** when
+an archive is present but is not the July 2026 export whose sha256 is pinned in
+`data/reference/golden_source.json`, because its golden file is pinned to those
+rows and a silent skip would hide a regression behind a re-download. Set
+`EXOPHCA_EXPECT_SNAPSHOT=1` when you rebuilt from another export deliberately and
+want the skip with its explanation instead.
+
+Coverage, measured once with `coverage run -m unittest discover -s tests` and
+`coverage report` on 2026-11-19: **85% of the non-test code** (2,541 statements,
+372 missed) and **92% including the test modules** (5,241 statements, 418
+missed). The lowest file is `exophca/ml/radius_model.py` at 54%, which is the
+training module: only `scripts/train_radius_model.py` exercises it end to end, and
+that script is deliberately not run here. The figure is recorded, not gated.
 
 **Never lower the test count to make a change pass.** If a test file loses test
 methods, it was damaged; restore it from git before going further.
@@ -59,9 +69,24 @@ python scripts/train_radius_model.py --stage 2 --force
 ```
 
 That rewrites the artifact, so the committed sha256 changes with it:
-`tests/test_ml_predict.py` pins the artifact's hash and will fail until
-`ARTIFACT_SHA256` is updated to the new value. Update the constant in the same
-commit, and expect the README's model numbers to move with it.
+`exophca/ml/predict.py` holds `EXPECTED_ARTIFACT_SHA256`, the loader refuses to
+`joblib.load` a file that does not match it, and `tests/test_ml_predict.py`
+imports the same constant. Update that one value in the same commit, and expect
+the README's model numbers to move with it.
+
+**The artifact is a pickle.** Loading one executes code from the file, which is
+why the loader checks the digest *before* it unpickles anything and returns a
+warning instead of raising. That guard protects this repository's own artifact:
+a fork that copies `models/radius_model.joblib` gets the byte check but no reason
+to trust it, so re-train instead of trusting a copied file.
+
+**The shadow holdout is not the trainer.** `scripts/holdout_evaluation.py` writes
+`models/radius_model_holdout.json` and a working record, and touches nothing the
+release depends on. It re-runs the recipe inside the released training rows and
+evaluates once on the calibration hosts, which no model was fitted on. It refuses
+a second run without `--force` and records a hash of the recipe source, so a
+recipe changed after the number was seen is visible. Do not run
+`scripts/estimate_radii.py` to "refresh" anything: the shipped table is pinned.
 
 ## Refreshing the archive snapshot
 
@@ -92,11 +117,16 @@ python -m pip install pre-commit
 pre-commit install
 ```
 
-The hooks run ruff's bug-finding rules plus trailing-whitespace and
-end-of-file checks. A `pre-commit run --all-files` currently fails the two
-whitespace hooks on the existing tree; that backlog is listed in the hook
-configuration and is meant to be cleared in its own commit, not mixed into a
-functional change.
+The hooks run ruff's bug-finding rules plus unused imports and unused locals
+(`E9,F63,F7,F82,F401,F841`) and the whitespace and end-of-file checks.
+`pre-commit run --all-files` passes on this tree, with `data/reference/` excluded
+because `hzcalc.py` is a vendored Python 2 file. CI runs the same rule set and
+the same exclusion, so a finding cannot reach `main` through either path.
+
+`.gitattributes` normalises every text file to LF in the working tree. Do not
+remove it: `tests/test_ml_predict.py` pins the digest of a processed CSV, and a
+line-ending difference between a Windows clone and the Linux runner is exactly
+what broke the first CI run.
 
 ## Working notes stay local
 

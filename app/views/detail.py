@@ -177,27 +177,6 @@ st.caption(
 
 hz_label = ui.HZ_LABELS.get(hz_class, hz_class)
 
-metric_columns = st.columns(4)
-metric_columns[0].metric(
-    "Score",
-    f"{row['base_score']:.3f}",
-    help="The ESI-style similarity computed from the archive radius and flux.",
-)
-# The range is written without spaces around the dash: at four columns the
-# metric font sets "0.855 - 0.920" a few pixels wider than the column, which
-# clipped the last digit at desktop width.
-metric_columns[1].metric(
-    "16th-84th percentile",
-    f"{row['base_score_p16']:.3f}\u2013{row['base_score_p84']:.3f}",
-    help="Monte Carlo range of the score, from the published radius and flux errors.",
-)
-metric_columns[2].metric("Compatibility tier", tier)
-metric_columns[3].metric(
-    "Flux",
-    f"{row['pl_insol']:.3f} S⊕",
-    help="Insolation flux relative to Earth.",
-)
-
 # The habitable-zone class is a long label, so it is shown as a chip rather
 # than as a metric value, which Streamlit truncates in a narrow column.
 st.markdown(
@@ -222,6 +201,33 @@ with badge_columns[3]:
     ui.badge("yes" if row["boundary_sensitive"] else "no", color=ui.NEUTRAL)
 
 st.write("")
+
+# The summary leads with the tier, the habitable-zone class, the uncertainty
+# status and the score's range, and shows the point score last with the null
+# result beside it: the score is a descriptive column, not a ranking.
+metric_columns = st.columns(4)
+metric_columns[0].metric("Compatibility tier", tier)
+# The range is written without spaces around the dash: at four columns the
+# metric font sets "0.855 - 0.920" a few pixels wider than the column, which
+# clipped the last digit at desktop width.
+metric_columns[1].metric(
+    "16th-84th percentile",
+    f"{row['base_score_p16']:.3f}–{row['base_score_p84']:.3f}",
+    help="Monte Carlo range of the score, from the published radius and flux errors.",
+)
+metric_columns[2].metric(
+    "Flux",
+    f"{row['pl_insol']:.3f} S⊕",
+    help="Insolation flux relative to Earth.",
+)
+metric_columns[3].metric(
+    "Score",
+    f"{row['base_score']:.3f}",
+    help="The ESI-style similarity computed from the archive radius and flux.",
+)
+st.caption(
+    f"**Read the score as a descriptive column.** {methods_content.SCORE_NULL_RESULT}"
+)
 
 left, right = st.columns(2)
 

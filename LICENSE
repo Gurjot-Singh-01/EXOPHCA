@@ -19,3 +19,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Third-party material is not covered by the MIT licence above. The files
+data/reference/hwc.csv, data/reference/hwc_potentially_habitable.csv and
+data/processed/phl_comparison.csv come from the PHL Habitable Worlds Catalog
+and are distributed under Creative Commons Attribution-NonCommercial-ShareAlike
+3.0 Unported (CC BY-NC-SA 3.0),
+https://phl.upr.edu/phl-website-content-license : credit "PHL @ UPR Arecibo",
+no commercial use, and share-alike on derivatives of the catalogue. The full
+record is data/reference/LICENSE-PHL.md.

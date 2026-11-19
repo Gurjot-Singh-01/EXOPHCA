@@ -1,0 +1,312 @@
+{
+  "holdout_evaluated": true,
+  "holdout_evaluated_on": "2026-11-19",
+  "script": "scripts/holdout_evaluation.py",
+  "recipe_hash": "ac89d59e8596790affc444d35d7b70f6844e0839d3ce34066179037700c6d151",
+  "recipe_files": [
+    "exophca/ml/radius_model.py",
+    "scripts/train_radius_model.py",
+    "scripts/holdout_evaluation.py"
+  ],
+  "shadow_seed": 20261119,
+  "shadow_calibration_fraction": 0.2,
+  "python": "3.14.0",
+  "library_versions": {
+    "python": "3.14.0",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "joblib": "1.6.0",
+    "lightgbm": "4.7.0"
+  },
+  "released_test_host_hash": "71117774fc26099a96bb97ce26fcc612a69adeb9d58837fdbb5573cf0d80fd8e",
+  "reproduced_test_host_hash": "71117774fc26099a96bb97ce26fcc612a69adeb9d58837fdbb5573cf0d80fd8e",
+  "pool": {
+    "description": "the released train split",
+    "rows": 1069,
+    "hosts": 826,
+    "fit_rows": 832,
+    "fit_hosts": 661,
+    "calibration_rows": 237,
+    "calibration_hosts": 165,
+    "pool_host_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "holdout": {
+    "description": "the released calibration split - the only hosts no model was fitted on",
+    "rows": 274,
+    "hosts": 207,
+    "host_hash": "8fed53b627aaf656941a2de4e8f82d88f688acf056322c4ec6f5bf1590b52286",
+    "out_of_distribution_rows": 27
+  },
+  "recipe_decision": {
+    "best_baseline": "piecewise_power_law",
+    "best_baseline_cv_mae": 0.1328632280975492,
+    "best_baseline_cv_sd": 0.014407356916698403,
+    "best_baseline_cv_se": 0.00644316588836788,
+    "cv_threshold": 0.1264200622091813,
+    "learners": [
+      {
+        "learner": "knn",
+        "cv_mae": 0.11838547974995557,
+        "improvement_vs_baseline": 0.01447774834759362,
+        "clears_cv_threshold": true
+      },
+      {
+        "learner": "random_forest",
+        "cv_mae": 0.1173114467614037,
+        "improvement_vs_baseline": 0.015551781336145487,
+        "clears_cv_threshold": true
+      },
+      {
+        "learner": "lightgbm",
+        "cv_mae": 0.12049474566102258,
+        "improvement_vs_baseline": 0.012368482436526607,
+        "clears_cv_threshold": true
+      }
+    ],
+    "chosen_model": "random_forest",
+    "chosen_kind": "learner",
+    "chosen_params": {
+      "max_depth": 12,
+      "max_features": 1.0,
+      "min_samples_leaf": 2
+    },
+    "chosen_cv_mae": 0.1173114467614037
+  },
+  "interval_recommended_on_cv_in_pool": "cqr",
+  "interval_reason_in_pool": "neither method is uniformly calibrated: both meet overall coverage but each under-covers in at least one mass stratum beyond the tolerance. cqr has the smaller worst-stratum shortfall (0.064 in '10 <= mass <= 100') than split_conformal (0.078 in '10 <= mass <= 100'), and the narrower mean width (0.505 vs 0.587 dex).",
+  "interval_cv_in_pool": {
+    "split_conformal": [
+      {
+        "stratum": "all rows",
+        "n": 832,
+        "coverage": 0.90625,
+        "mean_width_dex": 0.5871022602267065,
+        "mean_width_rearth": 11.055377377300383
+      },
+      {
+        "stratum": "mass < 10",
+        "n": 242,
+        "coverage": 0.9338842975206612,
+        "mean_width_dex": 0.5871850612396036,
+        "mean_width_rearth": 2.947943656014025
+      },
+      {
+        "stratum": "10 <= mass <= 100",
+        "n": 213,
+        "coverage": 0.8215962441314554,
+        "mean_width_dex": 0.586074036064813,
+        "mean_width_rearth": 6.907484431377968
+      },
+      {
+        "stratum": "mass > 100",
+        "n": 377,
+        "coverage": 0.9363395225464191,
+        "mean_width_dex": 0.5876300424584363,
+        "mean_width_rearth": 18.60312315457564
+      }
+    ],
+    "cqr": [
+      {
+        "stratum": "all rows",
+        "n": 832,
+        "coverage": 0.9038461538461539,
+        "mean_width_dex": 0.5048816924208901,
+        "mean_width_rearth": 7.9907726288541445
+      },
+      {
+        "stratum": "mass < 10",
+        "n": 242,
+        "coverage": 0.9090909090909091,
+        "mean_width_dex": 0.48826381129001,
+        "mean_width_rearth": 2.4757231145264362
+      },
+      {
+        "stratum": "10 <= mass <= 100",
+        "n": 213,
+        "coverage": 0.8356807511737089,
+        "mean_width_dex": 0.6013282978381242,
+        "mean_width_rearth": 7.012133183354361
+      },
+      {
+        "stratum": "mass > 100",
+        "n": 377,
+        "coverage": 0.9389920424403183,
+        "mean_width_dex": 0.4610578204840256,
+        "mean_width_rearth": 12.083855345986132
+      }
+    ]
+  },
+  "calibration": {
+    "nominal_coverage": 0.9,
+    "split_conformal_half_width_dex": 0.26213676247410483,
+    "split_conformal_achieved_level": 0.9033613445378151,
+    "split_conformal_order_statistic_k": 215,
+    "cqr_quantile_dex": 0.08602488785326062
+  },
+  "holdout_point_metrics": {
+    "MAE": 0.12123897783690651,
+    "RMSE": 0.19664293569703312,
+    "R2": 0.7936394476410176,
+    "MedAPE": 14.998232684333743
+  },
+  "holdout_baseline_metrics": {
+    "MAE": 0.13518334590672043,
+    "RMSE": 0.21623782024148155,
+    "R2": 0.7504639518474883,
+    "MedAPE": 19.012008921619156
+  },
+  "holdout_baseline_name": "piecewise_power_law",
+  "holdout_per_stratum": [
+    {
+      "stratum": "all rows",
+      "n": 274,
+      "MAE": 0.12123897783690651,
+      "RMSE": 0.19664293569703312,
+      "R2": 0.7936394476410176,
+      "MedAPE": 14.998232684333743
+    },
+    {
+      "stratum": "mass < 10",
+      "n": 77,
+      "MAE": 0.10397204763749365,
+      "RMSE": 0.14423546689410455,
+      "R2": 0.43473984339273086,
+      "MedAPE": 15.793998966989085
+    },
+    {
+      "stratum": "10 <= mass <= 100",
+      "n": 71,
+      "MAE": 0.15864469884536497,
+      "RMSE": 0.21356255129393145,
+      "R2": 0.46924679142721903,
+      "MedAPE": 25.227927303268626
+    },
+    {
+      "stratum": "mass > 100",
+      "n": 126,
+      "MAE": 0.11071316381908307,
+      "RMSE": 0.21371653309444205,
+      "R2": 0.11530514233181943,
+      "MedAPE": 9.709404545105842
+    }
+  ],
+  "holdout_interval_tables": {
+    "split_conformal": [
+      {
+        "stratum": "all rows",
+        "n": 274,
+        "coverage": 0.8722627737226277,
+        "mean_width_dex": 0.5242735249482098,
+        "mean_width_rearth": 9.850208934110679
+      },
+      {
+        "stratum": "mass < 10",
+        "n": 77,
+        "coverage": 0.9090909090909091,
+        "mean_width_dex": 0.5242735249482094,
+        "mean_width_rearth": 2.454498347488575
+      },
+      {
+        "stratum": "10 <= mass <= 100",
+        "n": 71,
+        "coverage": 0.8028169014084507,
+        "mean_width_dex": 0.5242735249482094,
+        "mean_width_rearth": 6.111400151908841
+      },
+      {
+        "stratum": "mass > 100",
+        "n": 126,
+        "coverage": 0.8888888888888888,
+        "mean_width_dex": 0.5242735249482099,
+        "mean_width_rearth": 16.47659892384268
+      }
+    ],
+    "cqr": [
+      {
+        "stratum": "all rows",
+        "n": 274,
+        "coverage": 0.8832116788321168,
+        "mean_width_dex": 0.5272126991728647,
+        "mean_width_rearth": 8.105409339816834
+      },
+      {
+        "stratum": "mass < 10",
+        "n": 77,
+        "coverage": 0.8311688311688312,
+        "mean_width_dex": 0.5073648420125477,
+        "mean_width_rearth": 2.451733108174181
+      },
+      {
+        "stratum": "10 <= mass <= 100",
+        "n": 71,
+        "coverage": 0.9014084507042254,
+        "mean_width_dex": 0.6859361396417336,
+        "mean_width_rearth": 7.696507865025994
+      },
+      {
+        "stratum": "mass > 100",
+        "n": 126,
+        "coverage": 0.9047619047619048,
+        "mean_width_dex": 0.449902546220918,
+        "mean_width_rearth": 11.790846439393292
+      }
+    ]
+  },
+  "holdout_interval_checks": {
+    "split_conformal": {
+      "overall": 0.8722627737226277,
+      "worst_stratum": "10 <= mass <= 100",
+      "worst_coverage": 0.8028169014084507,
+      "shortfall": 0.09718309859154928,
+      "passes": false
+    },
+    "cqr": {
+      "overall": 0.8832116788321168,
+      "worst_stratum": "mass < 10",
+      "worst_coverage": 0.8311688311688312,
+      "shortfall": 0.0688311688311688,
+      "passes": false
+    }
+  },
+  "released_test_metrics_for_comparison": {
+    "chosen_model": {
+      "MAE": 0.11767869420882449,
+      "RMSE": 0.1832499489333467,
+      "R2": 0.7930881312626418,
+      "MedAPE": 15.092280940410705
+    },
+    "split_conformal_coverage": [
+      {
+        "stratum": "all rows",
+        "n": 315,
+        "coverage": 0.9111111111111111,
+        "mean_width_dex": 0.5880817323067756,
+        "mean_width_rearth": 11.499859250157646
+      },
+      {
+        "stratum": "mass < 10",
+        "n": 71,
+        "coverage": 0.8732394366197183,
+        "mean_width_dex": 0.5880817323067755,
+        "mean_width_rearth": 2.8360629770275856
+      },
+      {
+        "stratum": "10 <= mass <= 100",
+        "n": 83,
+        "coverage": 0.8795180722891566,
+        "mean_width_dex": 0.5880817323067756,
+        "mean_width_rearth": 6.564665504087444
+      },
+      {
+        "stratum": "mass > 100",
+        "n": 161,
+        "coverage": 0.9440993788819876,
+        "mean_width_dex": 0.5880817323067756,
+        "mean_width_rearth": 17.864769910505853
+      }
+    ],
+    "out_of_distribution_rows": 12
+  },
+  "caveat": "The calibration hosts produced the released model's conformal half-width (0.29404 dex), so they are not untouched by the released artifact. This measures the recipe on hosts no model was fitted on. It is not an external distribution-shift test, and it does not make the published test numbers unbiased."
+}

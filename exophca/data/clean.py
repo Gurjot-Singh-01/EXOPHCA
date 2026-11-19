@@ -1,14 +1,12 @@
 """EXOPHCA data cleaning and dataset building module."""
 
 import re
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import numpy as np
 
-from exophca.science.esi import calculate_esi, classify_flags, STAR_CLASSES
-from exophca.data.validate import validate_dataframe
+from exophca.science.esi import calculate_esi
 
 
 PLANET_REQUIRED_COLUMNS = [
@@ -93,7 +91,6 @@ def clean_planets_dataset(df_raw: pd.DataFrame) -> pd.DataFrame:
 
     modelled_mask = has_radius & calc_val_mask & no_rad_err & is_rv
     derived_unclear_mask = has_radius & calc_val_mask & ~modelled_mask
-    measured_mask = has_radius & ~calc_val_mask
 
     radius_prov = np.select(
         [~has_radius, modelled_mask, derived_unclear_mask],

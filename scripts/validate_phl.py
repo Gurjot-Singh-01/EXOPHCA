@@ -1,7 +1,6 @@
 """Script to validate PHL Habitable Worlds Catalog against our data pipeline and science outputs."""
 
 import re
-import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -76,18 +75,6 @@ def main():
     )
 
     # Inspect key columns missing counts and min/max
-    # Map PHL columns: P_NAME, P_MASS, P_RADIUS, P_FLUX, P_TEMP_SURF, P_PERIOD, S_DISTANCE, S_AGE, P_ESI
-    col_map = {
-        'Mass': 'P_MASS',
-        'Radius': 'P_RADIUS',
-        'Flux': 'P_FLUX',
-        'Tsurf': 'P_TEMP_SURF',
-        'Period': 'P_PERIOD',
-        'Distance': 'S_DISTANCE',
-        'Age': 'S_AGE',
-        'ESI': 'P_ESI',
-        'Name': 'P_NAME'
-    }
 
     key_cols = ['P_MASS', 'P_RADIUS', 'P_FLUX', 'P_TEMP_SURF', 'P_PERIOD', 'S_DISTANCE', 'S_AGE', 'P_ESI']
     print("\n--- Key Columns Inspection (hwc.csv) ---")

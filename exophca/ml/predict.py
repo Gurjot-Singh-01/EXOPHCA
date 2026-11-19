@@ -18,12 +18,25 @@ estimates and a reason, never a guess.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.metadata as importlib_metadata
 from pathlib import Path
 
 import joblib
 import numpy as np
 import pandas as pd
+
+# The committed artifact is a pickle, and unpickling executes code from the file,
+# so a replaced artifact is a supply-chain surface. Its digest is recorded here,
+# next to the loader that checks it, and imported by tests/test_ml_predict.py so
+# there is one source of truth rather than two copies that can drift apart.
+#
+# The guard protects this repository's own artifact. A fork that copies the file
+# gets the same check, but the check does not make a copied artifact trustworthy:
+# retrain instead.
+EXPECTED_ARTIFACT_SHA256 = (
+    "6b3d62e901a0598b03bb637b86b53ce003d7637857b975a0ade9e767849cc2de"
+)
 
 ROCKY_THRESHOLD_REARTH = 1.6
 
@@ -90,18 +103,45 @@ def version_warnings(stored: dict | None) -> list[str]:
     return warnings
 
 
-def load_radius_artifact(path: str | Path) -> tuple[dict | None, list[str]]:
+def file_sha256(path: str | Path) -> str:
+    """sha256 of a file, read in chunks so a large artifact is not held in memory."""
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def load_radius_artifact(
+    path: str | Path,
+    expected_sha256: str | None = EXPECTED_ARTIFACT_SHA256,
+) -> tuple[dict | None, list[str]]:
     """Load the artifact and return ``(artifact, warnings)``.
 
     Never raises for a version mismatch, and never raises when a library the
     artifact needs is missing: it returns ``(None, warnings)`` and the caller
     decides what to do. The file itself is expected to exist - the pipeline that
     calls this is the one that trained it.
+
+    Before anything is unpickled, the file's sha256 is compared with
+    ``expected_sha256`` (the committed artifact's digest by default). A mismatch
+    is refused with a warning rather than loaded, because loading a pickle runs
+    its code. Pass ``expected_sha256=None`` only to read a file whose provenance
+    you already trust, such as a temporary artifact written by a test.
     """
     artifact_path = Path(path)
-    warnings: list[str] = []
     if not artifact_path.is_file():
         return None, [f"no radius artifact at {artifact_path}"]
+
+    if expected_sha256 is not None:
+        actual = file_sha256(artifact_path)
+        if actual != expected_sha256:
+            return None, [
+                f"refusing to load {artifact_path}: its sha256 is {actual}, but "
+                f"{expected_sha256} was expected. The artifact is a pickle, so "
+                "loading a replaced file would execute its code; restore the "
+                "committed artifact or retrain the model instead of loading it."
+            ]
 
     try:
         artifact = joblib.load(artifact_path)

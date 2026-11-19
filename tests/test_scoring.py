@@ -8,7 +8,6 @@ from pathlib import Path
 from exophca.science.esi import (
     calculate_esi,
     classify_flags,
-    validate_nonnegative_finite,
     validate_positive_finite,
 )
 

@@ -14,6 +14,13 @@ properties: planet radius and stellar insolation. It ships a Streamlit app
 whose every number is read from committed CSV files, and the whole pipeline that
 produced those files.
 
+The base score is a **descriptive column, not a ranking instrument**: it orders
+planets almost exactly as a plain unweighted `|log10 R| + |log10 S|` proximity
+to Earth does (Spearman rho = 0.992 over 5,641 planets), which is a null result
+this project reports instead of hiding. The pages therefore lead with the
+compatibility tier, the habitable-zone class and the uncertainty, and show the
+score last with that caveat beside it.
+
 ## What this is, and what it is not
 
 **It is** a transparent scoring and comparison exercise: an ESI-style
@@ -57,9 +64,11 @@ python -m pip install -e .
 
 `pip install -e .` alone is enough to run the app and the tests: it makes
 `exophca` importable and installs the runtime dependencies declared in
-`pyproject.toml`. `requirements.txt` only adds notebook tooling (Jupyter,
-notebook) on top of that same runtime set, so install it
-(`python -m pip install -r requirements.txt`) only if you want the notebooks.
+`pyproject.toml`, at whatever versions are newest that day. `requirements.txt`
+pins those same runtime packages to the versions this release was built with,
+and adds the notebook tooling on top, so use it when you want a reproducible
+environment: `python -m pip install -r requirements.txt`. A hosted platform
+reads that file for you (see "Running the app on a host").
 
 ### Reproducible install
 
@@ -80,9 +89,12 @@ each other. Confirm the result before running anything:
 python -m pip check
 ```
 
-which must print `No broken requirements found.`. The pins cover the runtime
-stack only: `requirements.txt` adds notebook tooling on top and is not
-constrained, so install it separately if you want the notebooks.
+which must print `No broken requirements found.`. The pins cover the **full**
+environment, notebook tooling included (`jupyter`, `jupyterlab`, `nbconvert`,
+`ipython`, `ipykernel`, ...), because that is the environment the model artifact
+and the processed tables were produced in. `requirements.txt` is the host-facing
+file and pins the same runtime versions to the same numbers; install one or the
+other, not both.
 
 Start the app with the project launcher:
 
@@ -111,12 +123,17 @@ The app is deployable on a Streamlit Community Cloud-style host with no extra
 pieces. What the host needs:
 
 - **Entry point:** `app/EXOPHCA.py`.
-- **Interpreter:** Python 3.14. The host must offer it and be set to it: the
-  package declares `requires-python = ">=3.14"`, so an older default fails the
-  *install*, not just the app. The pin lives in `.python-version` and
-  `pyproject.toml`; select 3.14 in the host's own settings as well.
-- **Install:** `python -m pip install -e . -c constraints.txt` from the
-  repository root, the same command CI runs.
+- **Interpreter:** Python 3.14, **selected in the host's own settings**
+  (Streamlit Community Cloud calls it "Advanced settings"). A Community
+  Cloud-style host does not read `.python-version` or `runtime.txt` when it
+  chooses an interpreter, so the setting has to be made by hand. The package
+  declares `requires-python = ">=3.14"`, so an older default fails the
+  *install*, not just the app.
+- **Install:** the host installs `requirements.txt` and the dependencies in
+  `pyproject.toml`. It does **not** run `pip install -e . -c constraints.txt`
+  and does not read `constraints.txt` at all. That is exactly why
+  `requirements.txt` carries exact pins: a deploy has to resolve the versions CI
+  tested. The constraints file is for a local environment.
 - **What it reads:** only the committed CSVs — `data/processed/*.csv`,
   `data/reference/solar_system.csv` and the other files under
   `data/reference/`. The app needs **neither** the raw archive exports **nor**
@@ -141,6 +158,22 @@ same ceiling at the server).
 | Tools | TESS Candidates | `app/views/tess_candidates.py` |
 | Reference | Methods and limitations | `app/views/methods.py` |
 | Reference | Architecture | `app/views/architecture.py` |
+
+### Accessibility baseline
+
+No screen-reader or keyboard-only pass has been recorded for this release; what
+follows is what the code guarantees, not a tested result.
+
+- Habitable-zone class, evidence tier and uncertainty status are always printed
+  as text next to their colour (`app/ui.py` carries the labels, the Detail page
+  prints them as chips and metrics), so no meaning depends on colour alone.
+- The Explorer's markers encode radius provenance by shape and outline, not by
+  colour, and the legend says so.
+- The Architecture page embeds the diagram in a frame that carries an accessible
+  name, and prints a short text summary of the diagram after it.
+- Keyboard order, focus visibility and the screen-reader output of the data
+  tables are **unverified** and are recorded here as an open item rather than
+  claimed as passing.
 
 ## Reproducing the data
 
@@ -230,10 +263,20 @@ renaming a download into place. It **never overwrites an existing file unless
 changing: a November 2026 download has 6,464 `pscomppars` rows (703 columns) and
 8,151 TOI rows (91 columns) against the July export's 6,319 × 325 and 8,064 × 87.
 Row counts, values and every derived figure move with it, and
-`data/reference/golden_base_score.csv` is pinned to the July rows, so
-`tests/test_data_pipeline.py:test_golden_baseline_regression` skips when the
-archive hash does not match the recorded one rather than reporting a false
-regression.
+`data/reference/golden_base_score.csv` is pinned to the July rows.
+
+**A different archive now fails the golden regression on purpose.**
+`tests/test_data_pipeline.py:test_golden_baseline_regression` skips when no
+archive is present at all (a fresh clone has none, and that is
+legitimate) but **fails loudly** when an archive is present and its sha256 is
+not the July 2026 digest recorded in `data/reference/golden_source.json`.
+Comparing a new export against a golden file pinned to the old rows is
+meaningless, and a silent skip would hide a real regression behind a
+re-download. Set `EXOPHCA_EXPECT_SNAPSHOT=1` when you rebuilt from another
+export deliberately and want the skip with its explanation instead. To re-pin on
+purpose, rebuild with `scripts/fetch_data.py` and `scripts/build_dataset.py`,
+then update `data/reference/golden_source.json` by hand from the provenance
+JSON: no script writes that fixture.
 
 ## Data sources and credits
 
@@ -248,8 +291,9 @@ regression.
   (`scripts/validate_phl.py`) and written to
   `data/processed/phl_comparison.csv`. No PHL value is used in scoring, and
   `tests/test_reference_cases.py` asserts the science modules contain no PHL
-  reference strings. Credit: Planetary Habitability Laboratory, University of
-  Puerto Rico at Arecibo.
+  reference strings. The catalogue is licensed **CC BY-NC-SA 3.0 Unported**:
+  credit `PHL @ UPR Arecibo`, no commercial use, share-alike on derivatives. See
+  `data/reference/LICENSE-PHL.md` and "Third-party licences".
 - **Schulze-Makuch et al. (2011)**, "A Two-Tiered Approach to Assessing the
   Habitability of Exoplanets", *Astrobiology* 11(10) — the published Earth
   Similarity Index the base score is modelled on. EXOPHCA uses its radius
@@ -268,8 +312,8 @@ source and credit; none of them is used in scoring.
 
 | File | Source | Credit and terms |
 | --- | --- | --- |
-| `data/reference/hwc.csv` | PHL Habitable Worlds Catalog, <https://phl.upr.edu/hwc> | Planetary Habitability Laboratory, University of Puerto Rico at Arecibo. Used **only** for external validation (`scripts/validate_phl.py`). PHL asks to be credited when the catalogue is used. |
-| `data/reference/hwc_potentially_habitable.csv` | The same catalogue's potentially-habitable subset | Same credit as above; used only to check the habitable-zone subset comparison. |
+| `data/reference/hwc.csv` | PHL Habitable Worlds Catalog, <https://phl.upr.edu/hwc> | Planetary Habitability Laboratory, University of Puerto Rico at Arecibo. **CC BY-NC-SA 3.0 Unported** (<https://phl.upr.edu/phl-website-content-license>): credit `PHL @ UPR Arecibo`, non-commercial use only, share-alike on derivatives. Used **only** for external validation (`scripts/validate_phl.py`). |
+| `data/reference/hwc_potentially_habitable.csv` | The same catalogue's potentially-habitable subset | Same credit and the same **CC BY-NC-SA 3.0 Unported** terms as above; used only to check the habitable-zone subset comparison. |
 | `data/reference/hzcalc.py` | R. Kopparapu (2014), translated to Python by J. Armstrong; original at <https://personal.ems.psu.edu/~jfk4/ruk15/planets/hzcalc.py> | Reference implementation of the Kopparapu et al. flux limits. Used to generate the oracle below and to check `exophca/science/habitable_zone.py`; never called by the app. |
 | `data/reference/hz_fluxes_oracle.csv` | Generated from `hzcalc.py` by `scripts/generate_oracle.py` | Derived from the file above, so it carries the same credit. |
 | `data/reference/solar_system.csv` | NASA NSSDCA planetary fact sheets, <https://nssdc.gsfc.nasa.gov/planetary/factsheet/> | Public NASA data; each row's `source` column records the page it came from. |
@@ -281,8 +325,20 @@ here. They are <https://arxiv.org/abs/1301.6674> (2013, ApJ 765, 131) and
 <https://arxiv.org/abs/1404.5292> (2014, ApJL 787, L29); the authors and
 publishers keep their own terms.
 
-Redistribution terms of third-party files have not been independently verified by
-the author.
+## Third-party licences
+
+| Material | Licence | Terms that apply |
+| --- | --- | --- |
+| `data/reference/hwc.csv`, `data/reference/hwc_potentially_habitable.csv` and the derived `data/processed/phl_comparison.csv` | **CC BY-NC-SA 3.0 Unported** — <https://phl.upr.edu/phl-website-content-license> | Credit `PHL @ UPR Arecibo`; no commercial use; share-alike on derivatives. The root `LICENSE` (MIT) does not cover them. Full record: `data/reference/LICENSE-PHL.md`. |
+| `data/reference/hzcalc.py` | Kopparapu (2014) reference implementation, translated by J. Armstrong — <https://personal.ems.psu.edu/~jfk4/ruk15/planets/hzcalc.py> | No licence is published with the file, so its terms are **unverified**. It generates the oracle and checks the habitable-zone limits; the app never calls it. |
+| `data/reference/hz_fluxes_oracle.csv` | Generated from `hzcalc.py` | Carries the same unverified terms. |
+| `data/reference/solar_system.csv` | NASA NSSDCA planetary fact sheets, <https://nssdc.gsfc.nasa.gov/planetary/factsheet/> | Public NASA data; each row records the page it came from. |
+| The NASA Exoplanet Archive exports and the tables derived from them | NASA Exoplanet Archive — <https://exoplanetarchive.ipac.caltech.edu/> | Cite the archive and its underlying references when reusing them. |
+
+The PHL conditions can be waived by the PHL on request; this project has not
+asked for a waiver and relies on the licence as published. The catalogue was
+downloaded unchanged — nothing here relicenses it — and no PHL value enters the
+score, the habitable-zone class, the tier or any probability.
 
 ## Results, as recorded in the committed files
 
@@ -394,7 +450,82 @@ MAE 0.1131, R² 0.8154 and the baseline comparison were computed on train and
 calibration rows and had no say in any choice. MAE 0.1177, R² 0.7931, coverage
 0.9111 and the 0.2940 dex half-width all come from rows that were also used to
 choose the interval method and to confirm the model recommendation. This
-release has **no untouched holdout**; adding one is the remaining fix.
+release has **no untouched holdout**. The shadow holdout below supplies the
+closest thing this dataset allows, and it comes out worse.
+
+### Shadow holdout: the recipe on hosts no model was fitted on
+
+The test split cannot be rescued: it was consulted twice. The closest thing to
+an untouched holdout this dataset can supply is the **calibration split** — the
+released artifact was fitted on the train rows and calibrated on the calibration
+rows, so no model was ever *fitted* on the calibration hosts, and their per-host
+results had never been published. `scripts/holdout_evaluation.py` re-runs the
+whole recipe (baseline and learner selection, interval comparison, fit, conformal
+calibration) inside the released train rows and evaluates **once** on those
+holdout rows. It writes `models/radius_model_holdout.json` and nothing else: the
+committed artifact, the metadata and every processed table are untouched, and a
+second run needs `--force` and records a hash of the recipe source, so a recipe
+changed after the number was seen is visible.
+
+| Quantity | Released test split | Shadow holdout |
+| --- | ---: | ---: |
+| Rows / hosts | 315 / 258 | 274 / 207 |
+| MAE (dex) | 0.1177 | **0.1212** |
+| RMSE (dex) | 0.1833 | 0.1966 |
+| R² | 0.7931 | 0.7936 |
+| Median absolute percentage error | 15.1% | 15.0% |
+| Best baseline MAE (piecewise power law, dex) | 0.1278 | 0.1352 |
+| Split-conformal half-width (dex) | 0.2940 | 0.2621 |
+| 90% interval coverage | 0.9111 | **0.8723** |
+| Worst mass stratum | 0.8732 (`mass < 10` M⊕) | 0.8028 (`10–100` M⊕) |
+| Out-of-distribution rows | 12 of 315 | 27 of 274 |
+
+**The holdout is worse, and that is the result.** MAE is 0.0035 dex higher than
+the published test figure, and the nominal 90% interval covers 87.2% of the rows
+rather than the 91.1% the test split reported — below its nominal level, with the
+`10–100` M⊕ stratum at 80.3%. Read the published test numbers as optimistic:
+they came from rows that had already voted on two choices. Conformalised
+quantile regression covers 88.3% on the same rows (worst stratum 83.1%), so the
+under-coverage is a property of the recipe on this population, not of one
+interval method. Re-running the selection inside the pool chose a random forest
+again, with slightly different hyperparameters (`min_samples_leaf` 2 rather than
+3), which is expected: the same grid over a different population.
+
+**The caveat belongs beside the numbers.** The calibration hosts produced the
+released model's own conformal half-width (0.2940 dex), so they are not untouched
+*by the released artifact*. This measures the recipe on hosts no model was fitted
+on. It is not an external distribution-shift test, and it does not retroactively
+make the published test figures unbiased.
+
+### Why a random forest, and what the shipped estimates come from
+
+`data/processed/radius_estimates.csv` was produced by **the random forest in
+`models/radius_model.joblib`** (`max_features=1.0`, `min_samples_leaf=3`, fitted
+on the 1,069 training rows) through `scripts/estimate_radii.py`. No shipped
+estimate came from the piecewise power law.
+
+The decision the model supports is the *estimate and its interval for a planet
+whose radius the archive had to model*, not a better MAE in the abstract. The
+random forest beats the best baseline by **0.0101 dex** on the held-out test
+split and 0.0139 dex on the shadow holdout, against a 90% interval half-width of
+0.2940 and 0.2621 dex — about one thirtieth of the width. It buys an interval and
+an out-of-distribution flag, not a different answer.
+
+What it learned is recorded in `models/radius_model_meta.json`
+(`permutation_importance`): the out-of-fold MAE increase when one feature is
+permuted is 0.2803 dex for `log10_pl_bmasse`, 0.0361 for `log10_pl_orbper`,
+0.0211 for `st_rad`, 0.0080 for `st_teff` and 0.0050 for `st_mass`. The model is
+essentially a mass-to-radius relation with a period correction.
+
+**The recorded decision is (b): keep the random forest, and say what it is for.**
+It is a radius estimator with a calibrated interval and an applicability flag;
+it never changes a score, class, tier or probability, and the Detail page says so
+where the estimate appears. The more modest alternative — ship the piecewise
+power law as the default estimate and present the random forest as a measured
+improvement — is recorded here as the recommendation for a future release. It is
+**not** applied in v1.0.0, because changing the default estimate means re-running
+`scripts/estimate_radii.py`, which rewrites a published, digest-pinned table: that
+is a release decision, not a documentation edit.
 
 ### The base score
 
@@ -505,6 +636,22 @@ partly agreement about one shared input, for the same reason.
 - **TESS candidates are unconfirmed.** `toi_assessed.csv` rows are Objects of
   Interest, not confirmed planets, and the file says so on every row.
 
+## Scope: what v1.0.0 must do, should do, and will not do
+
+**Audience.** A learner who wants to see how a habitability score is actually
+built - formula, limits, uncertainty, tiers, and a model - and a reviewer
+assessing engineering judgement rather than astronomy.
+
+| | |
+| --- | --- |
+| **Must** | Score any planet with a radius and a flux from the committed snapshot; classify its habitable zone; state the uncertainty and the evidence behind each number; reproduce every published figure from the files in this repository. |
+| **Should** | State its own limits on the page where a number appears; stay read-only and offline; keep one command (`python scripts/check.py`) that verifies the whole artefact. |
+| **Will not (v1)** | User accounts, a write path, authentication, a database, live archive access, any claim about life or habitability, and a ranking of planets "by habitability". |
+
+There is no login, no stored user data and no server-side state: the app reads
+committed CSVs and scores what the visitor types. That is a scope decision, not
+an omission.
+
 ## Repository map
 
 ```text
@@ -545,7 +692,7 @@ data/
 models/
   radius_model.joblib        Trained artifact (read offline, never by the app)
   radius_model_meta.json     Metrics, splits, decisions and interval history
-tests/                       303 unittest tests plus tests/data/batch_example.csv
+tests/                       305 unittest tests plus tests/data/batch_example.csv
 docs/                        Not published: the report, presentation and the working
                              records are kept outside this repository
 notebooks/archive/           The original exploratory notebook (kept for provenance)
@@ -558,7 +705,7 @@ python -m unittest discover -s tests -v
 ```
 
 From the repository root, with the virtualenv active or its interpreter used
-directly. The suite is 303 tests and covers the science modules, the data
+directly. The suite is 305 tests and covers the science modules, the data
 pipeline, the model artifact, every Streamlit page (via `AppTest`), and cold
 starts in fresh processes.
 
@@ -630,7 +777,41 @@ The raw working records for every phase — the validation report, the model
 report and the audit trail — are likewise kept outside the repository. They are
 process history, not documentation of the shipped system.
 
+## Appendix: where every number comes from
+
+One row per published figure, with the file it is read from and the step that
+produced it. Nothing in the README is typed from memory.
+
+| Number | Read from | Produced by |
+| --- | --- | --- |
+| 6,319 planets, 5,688 scorable | `data/processed/planets.csv` | `scripts/build_dataset.py` from the July 2026 export |
+| 5,688 assessed, tier and evidence counts | `data/processed/planets_assessed.csv` | `scripts/assess.py`, rules in `exophca/science/assessment.py` |
+| Habitable-zone class counts | `data/processed/planets_hz.csv` | `scripts/hz_report.py`, limits in `exophca/science/habitable_zone.py` |
+| PHL rho 0.7287, 5,080 matched | `data/processed/phl_comparison.csv` | `scripts/validate_phl.py` |
+| Score rho 0.992, 26 band changes, 17 of 18 | `data/processed/planets_assessed.csv`, ranked against plain log-radius plus log-flux proximity | the comparison described in "The base score" |
+| 1,517 estimates, 1,168 numeric, 565 out of distribution | `data/processed/radius_estimates.csv` | `scripts/estimate_radii.py` with `exophca/ml/predict.py` |
+| CV MAE 0.1131, R2 0.8154 | `models/radius_model_meta.json` (`cv_learners`) | `scripts/train_radius_model.py` |
+| Test MAE 0.1177, coverage 0.9111 | `models/radius_model_meta.json` (`test_metrics`, `test_interval_coverage`) | the same script, one evaluation, `--force` never used |
+| Holdout MAE 0.1212, coverage 0.8723 | `models/radius_model_holdout.json` | `scripts/holdout_evaluation.py`, run 2026-11-19 |
+| Suite size, 305 tests | the run output of `python -m unittest discover -s tests` | this tree; CI ran 303 on `c556719` |
+
+Who chose what: the formula weights come from Schulze-Makuch et al. (2011) and
+are not tuned here; the habitable-zone limits come from Kopparapu et al.; the
+tier thresholds, the split fractions, the CV folds, the interval tolerance and
+the seed are constants in `exophca/science/assessment.py` and
+`exophca/ml/radius_model.py`, fixed before any evaluation and recorded in
+`models/radius_model_meta.json`. The one choice made *after* seeing test rows -
+switching the interval method from CQR to split conformal - is stated in the
+Radius model section, and the shadow holdout is the price of it.
+
 ## License
 
-MIT. See `LICENSE`. Third-party data and papers keep their own terms; see Data
-sources and credits.
+MIT for this project's own code and documentation. See `LICENSE`.
+
+The MIT licence does **not** cover the third-party material under
+`data/reference/` or the table derived from it. The PHL catalogue
+(`data/reference/hwc.csv`, `data/reference/hwc_potentially_habitable.csv`) and
+`data/processed/phl_comparison.csv` are **CC BY-NC-SA 3.0 Unported**: credit
+`PHL @ UPR Arecibo`, non-commercial use only, share-alike on derivatives. See
+`data/reference/LICENSE-PHL.md` and "Third-party licences". The papers and the
+NASA archive keep their own terms as well; see "Data sources and credits".

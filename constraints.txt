@@ -2,9 +2,15 @@
 # Generated from the project virtualenv on the build machine; never edited by
 # hand. Install a matching environment with:
 #     python -m pip install -c constraints.txt -e .
-
-# Excluded line (1):
-#   -e git+https://github.com/Gurjot-Singh-01/EXOPHCA.git@aefdb4873c81d7432a240301eb1349111507ce68#egg=exophca
+#
+# This file pins the FULL environment, not only the runtime stack: it includes
+# the notebook tooling (jupyter, jupyterlab, nbconvert, ipython, ...) as well as
+# the runtime packages. requirements.txt is the host-facing subset, pinned to the
+# same versions.
+#
+# It was captured on a Windows machine, which is why pywinpty appears: pip
+# records it there, and a constraint for a package that is never installed on
+# Linux is simply ignored.
 
 #============================================================
 
