@@ -41,7 +41,22 @@ PLANETS_PATH = ROOT / "data" / "processed" / "planets.csv"
 ASSESSED_PATH = ROOT / "data" / "processed" / "planets_assessed.csv"
 ESTIMATES_PATH = ROOT / "data" / "processed" / "radius_estimates.csv"
 
-ASSESSED_SHA256_PREFIX = "6044cf78ae5d39df"
+# The assessed table is a text file, so its bytes depend on the checkout: the
+# repository stores LF, but a Windows clone with ``core.autocrlf=true`` writes
+# CRLF into the working tree. The pin below is therefore the digest of the
+# CRLF-normalised-to-LF content, which is identical on every platform. Hashing
+# the raw bytes made this guard pass on the author's Windows machine and fail
+# on the Linux CI runner, which checks the LF blob out.
+ASSESSED_SHA256_PREFIX = "06d772568e6a5c631b23b2"
+
+
+def canonical_sha256(path: Path) -> str:
+    """Return the sha256 of a file with its line endings normalised to LF.
+
+    Any change to the content still changes the digest, so the guard keeps its
+    meaning; only the platform's line-ending convention is factored out.
+    """
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 # The committed model artifact is a pickle: loading one executes code from it,
 # so a replaced artifact is a supply-chain surface. Its digest is pinned here,
@@ -327,7 +342,7 @@ class EstimatorArtifactTests(unittest.TestCase):
         self.assertAlmostEqual(written["radius_upper"], result.loc[0, "radius_upper"], places=5)
 
     def test_the_assessed_table_was_not_touched(self):
-        digest = hashlib.sha256(ASSESSED_PATH.read_bytes()).hexdigest()
+        digest = canonical_sha256(ASSESSED_PATH)
 
         self.assertTrue(digest.startswith(ASSESSED_SHA256_PREFIX), digest)
 
