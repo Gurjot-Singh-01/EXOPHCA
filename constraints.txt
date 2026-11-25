@@ -90,7 +90,7 @@ packaging==26.3
 pandas==3.0.6
 pandocfilters==1.5.1
 parso==0.8.7
-pillow==12.3.0
+pillow==13.0.0
 pip==25.2
 platformdirs==4.13.0
 plotly==7.1.0
