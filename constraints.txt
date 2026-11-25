@@ -123,7 +123,7 @@ Send2Trash==2.1.0
 six==1.17.0
 soupsieve==3.0.3
 stack-data==0.6.3
-starlette==1.8.0
+starlette==1.10.0
 streamlit==1.66.0
 terminado==0.18.1
 threadpoolctl==3.7.0
